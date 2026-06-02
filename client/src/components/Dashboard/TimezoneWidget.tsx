@@ -98,7 +98,10 @@ export default function TimezoneWidget() {
   return (
     <div className="rounded-2xl border p-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>{t('dashboard.timezone')}</span>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-4 rounded-full" style={{ background: 'linear-gradient(180deg, #f87060 0%, #ffb4a9 100%)' }} />
+          <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>{t('dashboard.timezone')}</span>
+        </div>
         <button onClick={() => setShowAdd(!showAdd)} className="p-1 rounded-md transition-colors" style={{ color: 'var(--text-faint)' }}>
           <Plus size={12} />
         </button>

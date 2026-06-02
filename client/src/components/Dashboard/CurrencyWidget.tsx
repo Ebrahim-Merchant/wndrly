@@ -53,7 +53,10 @@ export default function CurrencyWidget() {
   return (
     <div className="rounded-2xl border p-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-primary)' }}>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>{t('dashboard.currency')}</span>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-4 rounded-full" style={{ background: 'linear-gradient(180deg, #f87060 0%, #ffb4a9 100%)' }} />
+          <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>{t('dashboard.currency')}</span>
+        </div>
         <button onClick={fetchRate} className="p-1 rounded-md transition-colors" style={{ color: 'var(--text-faint)' }}>
           <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
         </button>
@@ -84,7 +87,7 @@ export default function CurrencyWidget() {
       </div>
 
       {/* Result */}
-      <div className="rounded-xl p-3" style={{ background: 'var(--bg-secondary)' }}>
+      <div className="rounded-xl p-3" style={{ background: 'linear-gradient(135deg, rgba(248,112,96,0.08) 0%, rgba(248,112,96,0.04) 100%)', border: '1px solid rgba(248,112,96,0.15)' }}>
         <p className="text-xl font-black tabular-nums" style={{ color: 'var(--text-primary)' }}>
           {formatNumber(result)} <span className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>{to}</span>
         </p>

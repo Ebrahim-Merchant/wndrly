@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useTripStore } from '../store/tripStore'
 import { tripRepo } from '../repo/tripRepo'
 import { placeRepo } from '../repo/placeRepo'
-import Navbar from '../components/Layout/Navbar'
 import FileManager from '../components/Files/FileManager'
 import { ArrowLeft } from 'lucide-react'
 import { useTranslation } from '../i18n'
@@ -63,9 +62,7 @@ export default function FilesPage(): React.ReactElement {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar tripTitle={trip?.name} tripId={tripId} showBack onBack={() => navigate(`/trips/${tripId}`)} />
-
-      <div style={{ paddingTop: 'var(--nav-h)' }}>
+      <div style={{ paddingTop: 0 }}>
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3 mb-6">
             <Link

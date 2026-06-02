@@ -4,7 +4,6 @@ import { Settings, Palette, Map, Bell, Plug, CloudOff, User, Info } from 'lucide
 import { useTranslation } from '../i18n'
 import { authApi } from '../api/client'
 import { useAddonStore } from '../store/addonStore'
-import Navbar from '../components/Layout/Navbar'
 import PageSidebar, { type PageSidebarTab } from '../components/Layout/PageSidebar'
 import DisplaySettingsTab from '../components/Settings/DisplaySettingsTab'
 import MapSettingsTab from '../components/Settings/MapSettingsTab'
@@ -54,9 +53,8 @@ export default function SettingsPage(): React.ReactElement {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-secondary)' }}>
-      <Navbar />
 
-      <div style={{ paddingTop: 'var(--nav-h)' }}>
+      <div style={{ paddingTop: 0 }}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">

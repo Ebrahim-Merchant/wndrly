@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 import { useTranslation } from '../i18n'
 import { useVacayStore } from '../store/vacayStore'
 import { addListener, removeListener } from '../api/websocket'
-import Navbar from '../components/Layout/Navbar'
 import VacayCalendar from '../components/Vacay/VacayCalendar'
 import VacayPersons from '../components/Vacay/VacayPersons'
 import VacayStats from '../components/Vacay/VacayStats'
@@ -54,8 +53,7 @@ export default function VacayPage(): React.ReactElement {
   if (loading) {
     return (
       <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-        <Navbar />
-        <div className="flex items-center justify-center" style={{ paddingTop: 'var(--nav-h)', minHeight: 'calc(100vh - var(--nav-h))' }}>
+        <div className="flex items-center justify-center" style={{ paddingTop: 0, minHeight: 'calc(100vh - var(--nav-h))' }}>
           <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-primary)', borderTopColor: 'var(--text-primary)' }} />
         </div>
       </div>
@@ -134,9 +132,8 @@ export default function VacayPage(): React.ReactElement {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      <Navbar />
 
-      <div style={{ paddingTop: 'var(--nav-h)' }}>
+      <div style={{ paddingTop: 0 }}>
         <div className="max-w-[1800px] mx-auto px-3 sm:px-4 py-4 sm:py-6">
           {/* Mobile + tablet header (filter toggle lives here) */}
           <div className="lg:hidden flex items-center justify-between mb-4">

@@ -6,7 +6,6 @@ import { useAuthStore } from '../store/authStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { useTranslation } from '../i18n'
 import { getApiErrorMessage } from '../types'
-import Navbar from '../components/Layout/Navbar'
 import DemoBanner from '../components/Layout/DemoBanner'
 import CurrencyWidget from '../components/Dashboard/CurrencyWidget'
 import TimezoneWidget from '../components/Dashboard/TimezoneWidget'
@@ -840,9 +839,8 @@ export default function DashboardPage(): React.ReactElement {
 
   return (
     <div className="wndrly-page-root" style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', ...font }}>
-      <Navbar />
       {demoMode && <DemoBanner />}
-      <div style={{ flex: 1, overflow: 'auto', overscrollBehavior: 'contain', marginTop: 'var(--nav-h)' }}>
+      <div style={{ flex: 1, overflow: 'auto', overscrollBehavior: 'contain', marginTop: 0 }}>
         <div style={{ maxWidth: 1300, margin: '0 auto', paddingTop: 32, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}>
 
           {/* Mobile greeting header */}
@@ -1161,7 +1159,11 @@ export default function DashboardPage(): React.ReactElement {
 
           {/* Widgets sidebar */}
           {showSidebar && (
-            <div className="hidden lg:flex flex-col gap-4" style={{ position: 'sticky', top: 80, flexShrink: 0, width: 280 }}>
+            <div className="hidden lg:flex flex-col gap-4" style={{ position: 'sticky', top: 32, flexShrink: 0, width: 280 }}>
+              <div className="flex items-center gap-2 px-1 mb-1">
+                <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(180deg, #f87060 0%, #ffb4a9 100%)' }} />
+                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>INFO</span>
+              </div>
               {showCurrency && <LiquidGlass dark={dark} style={{ borderRadius: 16 }}><CurrencyWidget /></LiquidGlass>}
               {showTimezone && <LiquidGlass dark={dark} style={{ borderRadius: 16 }}><TimezoneWidget /></LiquidGlass>}
             </div>

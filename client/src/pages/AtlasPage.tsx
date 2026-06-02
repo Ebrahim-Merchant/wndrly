@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getIntlLanguage, getLocaleForLanguage, useTranslation } from '../i18n'
 import { useSettingsStore } from '../store/settingsStore'
-import Navbar from '../components/Layout/Navbar'
 import apiClient, { mapsApi } from '../api/client'
 import CustomSelect from '../components/shared/CustomSelect'
 import { Globe, MapPin, Briefcase, Calendar, Flag, ChevronRight, PanelLeftOpen, PanelLeftClose, X, Star, Plus, Trash2, Search } from 'lucide-react'
@@ -765,8 +764,7 @@ export default function AtlasPage(): React.ReactElement {
   if (loading) {
     return (
       <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-        <Navbar />
-        <div className="flex items-center justify-center" style={{ paddingTop: 'var(--nav-h)', minHeight: 'calc(100vh - var(--nav-h))' }}>
+        <div className="flex items-center justify-center" style={{ paddingTop: 0, minHeight: '100vh' }}>
           <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-primary)', borderTopColor: 'var(--text-primary)' }} />
         </div>
       </div>
@@ -775,8 +773,7 @@ export default function AtlasPage(): React.ReactElement {
 
   return (
     <div className="h-screen overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
-      <Navbar />
-      <div style={{ position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)' }} className="md:!left-60">
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)' }} className="md:!left-60">
         {/* Map */}
         <div ref={mapRef} style={{ position: 'absolute', inset: 0, zIndex: 1, background: dark ? '#1a1a2e' : '#f0f0f0' }} />
 

@@ -9,7 +9,6 @@ import { useAuthStore } from '../store/authStore'
 import { useTranslation } from '../i18n'
 import { journeyApi, authApi, addonsApi, mapsApi } from '../api/client'
 import { addListener, removeListener } from '../api/websocket'
-import Navbar from '../components/Layout/Navbar'
 import JourneyMap from '../components/Journey/JourneyMapAuto'
 import { DAY_COLORS } from '../components/Journey/dayColors'
 import type { JourneyMapAutoHandle as JourneyMapHandle } from '../components/Journey/JourneyMapAuto'
@@ -336,8 +335,7 @@ export default function JourneyDetailPage() {
   if (loading || !current) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <Navbar />
-        <div style={{ paddingTop: 'var(--nav-h, 0px)' }} className="flex justify-center py-20">
+        <div style={{ paddingTop: 0 }} className="flex justify-center py-20">
           <div className="w-6 h-6 border-2 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
         </div>
       </div>
@@ -362,7 +360,6 @@ export default function JourneyDetailPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Navbar />
 
       {/* Mobile combined map+timeline (Polarsteps-style) — renders as fullscreen overlay */}
       {showMobileCombined && (
@@ -395,7 +392,7 @@ export default function JourneyDetailPage() {
       {isMobileChromeless && (
         <div
           className="fixed left-0 right-0 z-30 flex items-start justify-between gap-2 px-4"
-          style={{ top: 'calc(var(--nav-h, 56px) + 12px)' }}
+          style={{ top: '12px' }}
         >
           <button
             onClick={() => navigate('/journey')}
@@ -446,14 +443,14 @@ export default function JourneyDetailPage() {
         </div>
       )}
 
-      <div style={{ paddingTop: 'var(--nav-h, 0px)' }} className={showMobileCombined ? 'hidden' : ''}>
+      <div style={{ paddingTop: 0 }} className={showMobileCombined ? 'hidden' : ''}>
         <div
           className={
             isMobile
               ? 'max-w-[1440px] mx-auto px-0 pt-0'
               : 'flex w-full overflow-hidden'
           }
-          style={!isMobile ? { height: 'calc(100dvh - var(--nav-h, 56px))' } : undefined}
+          style={!isMobile ? { height: '100dvh' } : undefined}
         >
           {/* LEFT column (full width on mobile, scrollable feed on desktop) */}
           <div
@@ -692,7 +689,7 @@ export default function JourneyDetailPage() {
               {/* Gallery View — mobile gets extra top padding so the floating top bar doesn't overlap */}
               <div
                 className={view === 'gallery' ? '' : 'hidden'}
-                style={showMobileGallery ? { paddingTop: 'calc(var(--nav-h, 56px) + 64px)' } : undefined}
+                style={showMobileGallery ? { paddingTop: '64px' } : undefined}
               >
                 <GalleryView
                   entries={current.entries}

@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useJourneyStore } from '../store/journeyStore'
 import { journeyApi } from '../api/client'
-import Navbar from '../components/Layout/Navbar'
 import { useToast } from '../components/shared/Toast'
 import { useTranslation } from '../i18n'
 import {
@@ -109,8 +108,7 @@ export default function JourneyPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Navbar />
-      <div style={{ paddingTop: 'var(--nav-h, 56px)' }}>
+      <div style={{ paddingTop: 0 }}>
         <div className="max-w-[1440px] mx-auto">
 
           {/* Header — mobile */}

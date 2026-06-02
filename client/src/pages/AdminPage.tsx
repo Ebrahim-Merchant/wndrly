@@ -8,7 +8,6 @@ import { useSettingsStore } from '../store/settingsStore'
 import { useAddonStore } from '../store/addonStore'
 import { useTranslation } from '../i18n'
 import { getApiErrorMessage } from '../types'
-import Navbar from '../components/Layout/Navbar'
 import Modal from '../components/shared/Modal'
 import { useToast } from '../components/shared/Toast'
 import { useCountUp } from '../hooks/useCountUp'
@@ -498,9 +497,8 @@ export default function AdminPage(): React.ReactElement {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-secondary)' }}>
-      <Navbar />
 
-      <div style={{ paddingTop: 'var(--nav-h)' }}>
+      <div style={{ paddingTop: 0 }}>
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">

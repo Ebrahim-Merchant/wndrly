@@ -24,9 +24,9 @@ import TodoListPanel from '../components/Todo/TodoListPanel'
 import FileManager from '../components/Files/FileManager'
 import BudgetPanel from '../components/Budget/BudgetPanel'
 import CollabPanel from '../components/Collab/CollabPanel'
-import Navbar from '../components/Layout/Navbar'
 import { useToast } from '../components/shared/Toast'
-import { Map, X, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Ticket, PackageCheck, Wallet, FolderOpen, Users, Train } from 'lucide-react'
+import { Map, X, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Ticket, PackageCheck, Wallet, FolderOpen, Users, Train, ArrowLeft } from 'lucide-react'
+import InAppNotificationBell from '../components/Layout/InAppNotificationBell'
 import { useTranslation } from '../i18n'
 import { addonsApi, accommodationsApi, authApi, tripsApi, assignmentsApi, mapsApi } from '../api/client'
 import { accommodationRepo } from '../repo/accommodationRepo'
@@ -778,32 +778,70 @@ export default function TripPlannerPage(): React.ReactElement | null {
 
   return (
     <div className="wndrly-page-root" style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', ...fontStyle }}>
-      <Navbar tripTitle={trip.title} tripId={tripId} showBack onBack={() => navigate('/dashboard')} onShare={() => setShowMembersModal(true)} />
-
+      {/* Unified top bar: back, trip title, tabs, share */}
       <div style={{
-        position: 'fixed', top: 'var(--nav-h)', left: 0, right: 0, zIndex: 40,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40,
+        display: 'flex', alignItems: 'center',
         padding: '0 12px',
         background: 'var(--bg-elevated)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border-faint)',
-        height: 44,
-      }}>
-        <SlidingTabs
-          tabs={TRIP_TABS.map(tab => ({
-            id: tab.id,
-            label: <span className="hidden sm:inline">{tab.shortLabel || tab.label}</span>,
-            title: tab.label,
-            icon: tab.icon,
-          }))}
-          activeTab={activeTab}
-          onChange={handleTabChange}
-        />
+        height: 52,
+        gap: 8,
+      }} className="md:!left-60">
+        {/* Back button */}
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-sm transition-colors flex-shrink-0"
+          style={{ color: 'var(--text-muted)' }}
+          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
+          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+        >
+          <ArrowLeft size={15} />
+          <span className="hidden sm:inline text-xs font-medium">Back</span>
+        </button>
+
+        {/* Trip title */}
+        <span className="text-sm font-semibold truncate max-w-[120px] sm:max-w-[200px]" style={{ color: 'var(--text-primary)' }}>
+          {trip.title}
+        </span>
+
+        {/* Divider */}
+        <span style={{ color: 'var(--border-primary)', fontSize: 18 }}>|</span>
+
+        {/* Tabs - centered flex-1 */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
+          <SlidingTabs
+            tabs={TRIP_TABS.map(tab => ({
+              id: tab.id,
+              label: <span className="hidden sm:inline">{tab.shortLabel || tab.label}</span>,
+              title: tab.label,
+              icon: tab.icon,
+            }))}
+            activeTab={activeTab}
+            onChange={handleTabChange}
+          />
+        </div>
+
+        {/* Share button */}
+        <button
+          onClick={() => setShowMembersModal(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
+          style={{ background: '#f87060', color: 'white' }}
+          onMouseEnter={e => (e.currentTarget.style.background = '#e05e4e')}
+          onMouseLeave={e => (e.currentTarget.style.background = '#f87060')}
+        >
+          <Users size={14} />
+          <span className="hidden sm:inline text-xs">Share</span>
+        </button>
+
+        {/* Notification bell */}
+        <InAppNotificationBell />
       </div>
 
       {/* Offset by navbar + tab bar (44px) */}
-      <div style={{ position: 'fixed', top: 'calc(var(--nav-h) + 44px)', left: 0, right: 0, bottom: 0, overflow: 'hidden', overscrollBehavior: 'contain' }}>
+      <div style={{ position: 'fixed', top: 52, left: 0, right: 0, bottom: 0, overflow: 'hidden', overscrollBehavior: 'contain' }} className="md:!left-60">
 
         {activeTab === 'plan' && (
           <div style={{ position: 'absolute', inset: 0 }}>
@@ -838,7 +876,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
             <div className="hidden md:block" style={{ position: 'absolute', left: 10, top: 10, bottom: 10, zIndex: 20 }}>
               <button onClick={() => setLeftCollapsed(c => !c)}
                 style={{
-                  position: leftCollapsed ? 'fixed' : 'absolute', top: leftCollapsed ? 'calc(var(--nav-h) + 44px + 14px)' : 14, left: leftCollapsed ? 10 : undefined, right: leftCollapsed ? undefined : -28, zIndex: -1,
+                  position: leftCollapsed ? 'fixed' : 'absolute', top: leftCollapsed ? 66 : 14, left: leftCollapsed ? 10 : undefined, right: leftCollapsed ? undefined : -28, zIndex: -1,
                   width: 36, height: 36, borderRadius: leftCollapsed ? 10 : '0 10px 10px 0',
                   background: leftCollapsed ? '#000' : 'var(--sidebar-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                   boxShadow: leftCollapsed ? '0 2px 12px rgba(0,0,0,0.2)' : 'none', border: 'none',
@@ -914,7 +952,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
             <div className="hidden md:block" style={{ position: 'absolute', right: 10, top: 10, bottom: 10, zIndex: 20 }}>
               <button onClick={() => setRightCollapsed(c => !c)}
                 style={{
-                  position: rightCollapsed ? 'fixed' : 'absolute', top: rightCollapsed ? 'calc(var(--nav-h) + 44px + 14px)' : 14, right: rightCollapsed ? 10 : undefined, left: rightCollapsed ? undefined : -28, zIndex: -1,
+                  position: rightCollapsed ? 'fixed' : 'absolute', top: rightCollapsed ? 66 : 14, right: rightCollapsed ? 10 : undefined, left: rightCollapsed ? undefined : -28, zIndex: -1,
                   width: 36, height: 36, borderRadius: rightCollapsed ? 10 : '10px 0 0 10px',
                   background: rightCollapsed ? '#000' : 'var(--sidebar-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                   boxShadow: rightCollapsed ? '0 2px 12px rgba(0,0,0,0.2)' : 'none', border: 'none',
@@ -969,7 +1007,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
 
             {/* Mobile sidebar buttons — portal to body to escape Leaflet touch handling */}
             {activeTab === 'plan' && !mobileSidebarOpen && !showPlaceForm && !showMembersModal && !showReservationModal && ReactDOM.createPortal(
-              <div className="flex md:hidden" style={{ position: 'fixed', top: 'calc(var(--nav-h) + 44px + 12px)', left: 12, right: 12, justifyContent: 'space-between', zIndex: 100, pointerEvents: 'none' }}>
+              <div className="flex md:hidden" style={{ position: 'fixed', top: 64, left: 12, right: 12, justifyContent: 'space-between', zIndex: 100, pointerEvents: 'none' }}>
                 <button onClick={() => setMobileSidebarOpen('left')}
                   style={{ pointerEvents: 'auto', background: 'var(--bg-card)', color: 'var(--text-primary)', backdropFilter: 'blur(12px)', border: '1px solid var(--border-primary)', borderRadius: 24, padding: '11px 24px', fontSize: 15, fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 12px rgba(0,0,0,0.15)', minHeight: 44, fontFamily: 'inherit', touchAction: 'manipulation' }}>
                   {t('trip.mobilePlan')}

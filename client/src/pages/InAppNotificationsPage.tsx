@@ -3,7 +3,6 @@ import { Bell, CheckCheck, Trash2 } from 'lucide-react'
 import { useTranslation } from '../i18n'
 import { useInAppNotificationStore } from '../store/inAppNotificationStore.ts'
 import { useSettingsStore } from '../store/settingsStore'
-import Navbar from '../components/Layout/Navbar'
 import InAppNotificationItem from '../components/Notifications/InAppNotificationItem.tsx'
 
 export default function InAppNotificationsPage(): React.ReactElement {
@@ -45,8 +44,7 @@ export default function InAppNotificationsPage(): React.ReactElement {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      <Navbar />
-      <div style={{ paddingTop: 'var(--nav-h)' }}>
+      <div style={{ paddingTop: 0 }}>
         <div className="max-w-2xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
