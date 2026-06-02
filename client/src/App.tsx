@@ -20,6 +20,7 @@ import SharedTripPage from './pages/SharedTripPage'
 import InAppNotificationsPage from './pages/InAppNotificationsPage.tsx'
 import OAuthAuthorizePage from './pages/OAuthAuthorizePage'
 import { ToastContainer } from './components/shared/Toast'
+import Sidebar from './components/Layout/Sidebar'
 import BottomNav from './components/Layout/BottomNav'
 import { TranslationProvider, useTranslation } from './i18n'
 import { authApi } from './api/client'
@@ -80,9 +81,13 @@ function ProtectedRoute({ children, adminRequired = false, addonId }: ProtectedR
   }
 
   return (
-    <div className="flex flex-col h-screen md:block md:h-auto">
-      <div className="flex-1 overflow-y-auto md:overflow-visible">{children}</div>
-      <BottomNav />
+    <div className="flex h-screen">
+      <Sidebar />
+      {/* Mobile: full-width; Desktop: offset by sidebar width */}
+      <div className="flex flex-col flex-1 min-w-0 md:ml-60">
+        <div className="flex-1 overflow-y-auto">{children}</div>
+        <BottomNav />
+      </div>
     </div>
   )
 }

@@ -45,7 +45,7 @@ const MAPBOX_STYLE_PRESETS: StylePreset[] = [
 // Tag → chip color mapping. Keeps the dropdown readable at a glance so a
 // user scanning the list can spot 3D / Satellite / Apple-like styles.
 const TAG_STYLES: Record<string, string> = {
-  '3D': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300',
+  '3D': 'bg-coral-100 text-coral-800 dark:bg-coral-900/40 dark:text-coral-300',
   '2D': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
   'Satellite': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
   'Apple-like': 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',

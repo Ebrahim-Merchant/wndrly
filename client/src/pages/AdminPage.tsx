@@ -797,7 +797,7 @@ export default function AdminPage(): React.ReactElement {
               </div>
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button onClick={() => setShowCreateInvite(false)} className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700">{t('common.cancel')}</button>
-                <button onClick={handleCreateInvite} className="px-4 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-700">{t('admin.invite.createAndCopy')}</button>
+                <button onClick={handleCreateInvite} className="px-4 py-2 text-sm bg-coral-400 text-white rounded-lg hover:bg-coral-500">{t('admin.invite.createAndCopy')}</button>
               </div>
             </div>
           </Modal>

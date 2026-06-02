@@ -431,7 +431,7 @@ input[type="number"], input[type="time"], input[type="date"], input[type="dateti
   --safe-top: env(safe-area-inset-top, 0px);
   --nav-h: 0px;
   --bottom-nav-h: 0px;
-  --font-system: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  --font-system: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
   --sp-1: 4px;
   --sp-2: 8px;
   --sp-3: 12px;
@@ -444,15 +444,15 @@ input[type="number"], input[type="time"], input[type="date"], input[type="dateti
   --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-elevated: 0 4px 16px rgba(0,0,0,0.1);
 
-  /* Theme colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
-  --bg-elevated: rgba(250,250,250,0.82);
+  /* Theme colors — Wndrly warm sand light mode */
+  --bg-primary: #fef9f3;
+  --bg-secondary: #fdf8f2;
+  --bg-tertiary: #f9f0e3;
+  --bg-elevated: rgba(254,249,243,0.82);
   --bg-card: #ffffff;
   --bg-input: #ffffff;
-  --bg-hover: rgba(0,0,0,0.03);
-  --bg-selected: #e2e8f0;
+  --bg-hover: rgba(248,112,96,0.06);
+  --bg-selected: #ffe0db;
   --text-primary: #111827;
   --text-secondary: #374151;
   --text-muted: #6b7280;
@@ -460,20 +460,22 @@ input[type="number"], input[type="time"], input[type="date"], input[type="dateti
   --border-primary: #e5e7eb;
   --border-secondary: #f3f4f6;
   --border-faint: rgba(0,0,0,0.06);
-  --accent: #111827;
+  --accent: #f87060;
   --accent-text: #ffffff;
-  --sidebar-bg: rgba(250,250,250,0.82);
-  --sidebar-shadow: 0 4px 32px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06);
+  --sidebar-bg: #ffffff;
+  --sidebar-shadow: 0 4px 32px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06);
   --tooltip-bg: rgba(255,255,255,0.96);
-  --scrollbar-track: #f1f5f9;
-  --scrollbar-thumb: #d1d5db;
-  --scrollbar-hover: #9ca3af;
+  --scrollbar-track: #f9f0e3;
+  --scrollbar-thumb: #f8c4bc;
+  --scrollbar-hover: #f87060;
+  --coral: #f87060;
+  --coral-soft: #ffb4a9;
 
   /* Journey design tokens */
-  --journal-bg: #FAFAFA;
+  --journal-bg: #fef9f3;
   --journal-card: #FFFFFF;
-  --journal-border: #E4E4E7;
-  --journal-accent: #6366F1;
+  --journal-border: #f0d5cf;
+  --journal-accent: #f87060;
   --journal-text: #09090B;
   --journal-muted: #71717A;
   --journal-faint: #A1A1AA;
@@ -493,35 +495,37 @@ input[type="number"], input[type="time"], input[type="date"], input[type="dateti
 }
 
 .dark {
-  --bg-primary: #121215;
-  --bg-secondary: #1a1a1e;
-  --bg-tertiary: #1c1c21;
-  --bg-elevated: rgba(19,19,22,0.82);
-  --bg-card: #131316;
-  --bg-input: #1c1c21;
-  --bg-hover: rgba(255,255,255,0.06);
-  --bg-selected: rgba(255,255,255,0.1);
-  --text-primary: #f4f4f5;
-  --text-secondary: #d4d4d8;
+  --bg-primary: #09090b;
+  --bg-secondary: #131315;
+  --bg-tertiary: #1c1b1d;
+  --bg-elevated: rgba(19,19,21,0.82);
+  --bg-card: #131315;
+  --bg-input: #1c1b1d;
+  --bg-hover: rgba(248,112,96,0.1);
+  --bg-selected: rgba(248,112,96,0.15);
+  --text-primary: #e5e1e4;
+  --text-secondary: #c8c5ca;
   --text-muted: #a1a1aa;
   --text-faint: #71717a;
   --border-primary: #27272a;
   --border-secondary: #1c1c21;
   --border-faint: rgba(255,255,255,0.07);
-  --accent: #e4e4e7;
+  --accent: #f87060;
   --accent-text: #09090b;
-  --sidebar-bg: rgba(19,19,22,0.82);
+  --sidebar-bg: #131315;
   --sidebar-shadow: 0 4px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
-  --tooltip-bg: rgba(19,19,22,0.96);
-  --scrollbar-track: #131316;
+  --tooltip-bg: rgba(19,19,21,0.96);
+  --scrollbar-track: #131315;
   --scrollbar-thumb: #3f3f46;
-  --scrollbar-hover: #52525b;
+  --scrollbar-hover: #f87060;
+  --coral: #ffb4a9;
+  --coral-soft: #f87060;
 
   /* Journey design tokens (dark) */
   --journal-bg: #09090B;
   --journal-card: #18181B;
   --journal-border: #27272A;
-  --journal-accent: #818CF8;
+  --journal-accent: #f87060;
   --journal-text: #FAFAFA;
   --journal-muted: #A1A1AA;
   --journal-faint: #52525B;
@@ -812,3 +816,26 @@ img[alt="TREK"] {
 .collab-note-md-full table { border-collapse: collapse; width: 100%; margin: 0.5em 0; }
 .collab-note-md-full th, .collab-note-md-full td { border: 1px solid var(--border-primary); padding: 4px 8px; font-size: 0.9em; }
 .collab-note-md-full hr { border: none; border-top: 1px solid var(--border-primary); margin: 0.8em 0; }
+
+/* ── Wndrly Sidebar Layout ─────────────────────── */
+/* Pages that use fixed positioning need to account for the 240px sidebar */
+@media (min-width: 768px) {
+  .wndrly-page-root {
+    left: 240px !important;
+  }
+}
+
+/* ── Wndrly Primary Button Override ─────────────── */
+/* Dark mode: slate-900 buttons become coral */
+html.dark button.bg-slate-900 {
+  background-color: #f87060 !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+html.dark button.bg-slate-900:hover {
+  background-color: #f25c4a !important;
+}
+html.dark button.bg-slate-900:disabled {
+  background-color: #f87060 !important;
+  opacity: 0.4 !important;
+}

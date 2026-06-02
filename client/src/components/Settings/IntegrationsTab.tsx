@@ -635,7 +635,7 @@ export default function IntegrationsTab(): React.ReactElement {
 
                 <label className="flex items-start gap-2.5 cursor-pointer">
                   <input type="checkbox" checked={oauthIsMachine} onChange={e => setOauthIsMachine(e.target.checked)}
-                    className="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                    className="mt-0.5 rounded border-slate-300 text-coral-600 focus:ring-coral-500" />
                   <div>
                     <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>{t('settings.oauth.modal.machineClient')}</span>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{t('settings.oauth.modal.machineClientHint')}</p>

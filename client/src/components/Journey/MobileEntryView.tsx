@@ -174,7 +174,7 @@ export default function MobileEntryView({ entry, readOnly, publicPhotoUrl, onClo
           {entry.tags && entry.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-5">
               {entry.tags.map((tag, i) => (
-                <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-coral-50 dark:bg-coral-900/30 text-coral-600 dark:text-coral-400">
                   {tag}
                 </span>
               ))}

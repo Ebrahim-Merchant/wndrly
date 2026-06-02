@@ -839,7 +839,7 @@ export default function DashboardPage(): React.ReactElement {
   const rest = spotlight ? trips.filter(t => t.id !== spotlight.id) : trips
 
   return (
-    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', ...font }}>
+    <div className="wndrly-page-root" style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', ...font }}>
       <Navbar />
       {demoMode && <DemoBanner />}
       <div style={{ flex: 1, overflow: 'auto', overscrollBehavior: 'contain', marginTop: 'var(--nav-h)' }}>

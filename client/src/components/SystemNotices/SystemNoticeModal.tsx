@@ -149,7 +149,7 @@ function NoticeContent({ notice, title, body, ctaLabel, titleId, bodyId, isDark,
                   a: ({ href, children }) => (
                     <a
                       href={href}
-                      className="text-indigo-600 dark:text-indigo-400 underline decoration-indigo-300 dark:decoration-indigo-700 hover:decoration-indigo-500 dark:hover:decoration-indigo-400 underline-offset-2 transition-colors"
+                      className="text-coral-600 dark:text-coral-400 underline decoration-indigo-300 dark:decoration-indigo-700 hover:decoration-indigo-500 dark:hover:decoration-indigo-400 underline-offset-2 transition-colors"
                       target="_blank"
                       rel="noopener noreferrer"
                     >

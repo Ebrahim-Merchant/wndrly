@@ -444,7 +444,7 @@ export default function JourneyPage() {
                 <button
                   onClick={handleCreate}
                   disabled={!newTitle.trim()}
-                  className="px-3.5 py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[13px] font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3.5 py-2 rounded-lg bg-coral-400 dark:bg-coral-500 text-white text-[13px] font-medium hover:bg-coral-500 dark:hover:bg-coral-600 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <span className="md:hidden">{t('journey.create')}</span><span className="hidden md:inline">{t('journey.frontpage.createJourney')}</span>
                 </button>

@@ -104,7 +104,7 @@ export default function Navbar({ tripTitle, tripId, onBack, showBack, onShare }:
       paddingTop: 'env(safe-area-inset-top, 0px)',
       height: 'var(--nav-h)',
       transition: 'background 240ms cubic-bezier(0.23,1,0.32,1), backdrop-filter 240ms cubic-bezier(0.23,1,0.32,1), box-shadow 240ms cubic-bezier(0.23,1,0.32,1)',
-    }} className="hidden md:flex items-center px-4 gap-4 fixed top-0 left-0 right-0 z-[200]">
+    }} className={`hidden md:flex items-center px-4 gap-4 fixed top-0 right-0 z-[200] ${(showBack || tripTitle) ? 'left-60' : 'left-60'}`}>
       {/* Left side */}
       <div className="flex items-center gap-3 min-w-0">
         {showBack && (

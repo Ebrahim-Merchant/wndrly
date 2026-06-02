@@ -1469,7 +1469,7 @@ function EntryCard({ entry, readOnly, onEdit, onDelete, onPhotoClick }: {
             </div>
             <div className="flex gap-1">
               {entry.tags?.map((tag, i) => (
-                <span key={i} className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">{tag}</span>
+                <span key={i} className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-coral-50 dark:bg-coral-900/30 text-coral-600 dark:text-coral-400">{tag}</span>
               ))}
             </div>
           </div>
@@ -1510,7 +1510,7 @@ function CheckinCard({ entry, onClick }: { entry: JourneyEntry; onClick?: () => 
       onClick={onClick}
       className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 flex items-center gap-2.5 transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] ${onClick ? 'hover:border-zinc-400 dark:hover:border-zinc-500 cursor-pointer' : ''}`}
     >
-      <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0">
+      <div className="w-7 h-7 rounded-lg bg-coral-50 dark:bg-coral-900/30 text-coral-600 dark:text-coral-400 flex items-center justify-center flex-shrink-0">
         <MapPin size={13} />
       </div>
       <div className="flex-1 min-w-0">
@@ -2050,7 +2050,7 @@ function ProviderPicker({ provider, userId, entries, trips, existingAssetIds, on
                 onAdd(groups, targetEntryId)
               }}
               disabled={selected.size === 0}
-              className="px-3.5 py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[13px] font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3.5 py-2 rounded-lg bg-coral-400 dark:bg-coral-500 text-white text-[13px] font-medium hover:bg-coral-500 dark:hover:bg-coral-600 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {t('common.add')} {selected.size > 0 ? `(${selected.size})` : ''}
             </button>
@@ -2158,7 +2158,7 @@ function DatePicker({ value, onChange, tripDates }: {
                   >
                     {day}
                     {isTrip && !isSelected && (
-                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-indigo-500" />
+                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-coral-400" />
                     )}
                   </button>
                 )
@@ -2647,7 +2647,7 @@ function EntryEditor({ entry, journeyId, tripDates, galleryPhotos, onClose, onSa
 
         <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
           <button onClick={handleClose} className="px-3.5 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 text-[13px] font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700">{t('common.cancel')}</button>
-          <button onClick={handleSave} disabled={saving} className="px-3.5 py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[13px] font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-50">
+          <button onClick={handleSave} disabled={saving} className="px-3.5 py-2 rounded-lg bg-coral-400 dark:bg-coral-500 text-white text-[13px] font-medium hover:bg-coral-500 dark:hover:bg-coral-600 disabled:opacity-50">
             {saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
@@ -2874,7 +2874,7 @@ function ContributorInviteDialog({ journeyId, existingUserIds, onClose, onInvite
           <button
             onClick={handleInvite}
             disabled={!selectedUserId || sending}
-            className="px-3.5 py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[13px] font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-3.5 py-2 rounded-lg bg-coral-400 dark:bg-coral-500 text-white text-[13px] font-medium hover:bg-coral-500 dark:hover:bg-coral-600 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {sending ? t('journey.invite.inviting') : t('journey.invite.invite')}
           </button>
@@ -3223,7 +3223,7 @@ function JourneySettingsDialog({ journey, onClose, onSaved, onOpenInvite, onRefr
             <span className="hidden md:inline">{journey.status === 'archived' ? t('journey.settings.reopenJourney') : t('journey.settings.endJourney')}</span>
           </button>
           <button onClick={handleClose} className="h-9 px-3.5 rounded-lg border border-zinc-200 dark:border-zinc-600 text-[13px] font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700">{t('common.cancel')}</button>
-          <button onClick={handleSave} disabled={saving || !title.trim()} className="h-9 px-3.5 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[13px] font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-40">
+          <button onClick={handleSave} disabled={saving || !title.trim()} className="h-9 px-3.5 rounded-lg bg-coral-400 dark:bg-coral-500 text-white text-[13px] font-medium hover:bg-coral-500 dark:hover:bg-coral-600 disabled:opacity-40">
             {saving ? t('common.saving') : t('common.save')}
           </button>
         </div>
