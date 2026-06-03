@@ -23,4 +23,4 @@ DATABASE_URL=postgresql://postgres.xfvayfokefudhxtlcprj:WndrlySupa2024!SecurePas
 # https://supabase.com/dashboard/project/xfvayfokefudhxtlcprj
 
 # Supabase API key (for management):
-SUPABASE_API_KEY=sbp_REDACTED
+# SUPABASE_API_KEY=sbp_REDACTED (stored in ~/.openclaw/secrets/.env.wndrly-supabase)
