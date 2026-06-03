@@ -488,7 +488,7 @@ const en: Record<string, string | { name: string; category: string }[]> = {
 
   // Login
   'login.error': 'Login failed. Please check your credentials.',
-  'login.tagline': 'Your Trips.\nYour Plan.',
+  'login.tagline': 'Plan smarter.\nTravel better.',
   'login.description': 'Plan trips collaboratively with interactive maps, budgets, and real-time sync.',
   'login.features.maps': 'Interactive Maps',
   'login.features.mapsDesc': 'Google Places, routes & clustering',
