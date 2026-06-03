@@ -42,6 +42,9 @@ services:
 #      - ADMIN_PASSWORD=changeme      # Initial admin password — only used on first boot when no users exist
 #      - MCP_RATE_LIMIT=300 # Max MCP API requests per user per minute (default: 300)
 #      - MCP_MAX_SESSION_PER_USER=20 # Max concurrent MCP sessions per user (default: 20)
+      # --- Supabase PostgreSQL (Option A) ---
+      - DATABASE_URL=${DATABASE_URL:-} # postgresql://postgres.xfvayfokefudhxtlcprj:WndrlySupa2024!SecurePass@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+      - DATABASE_SSL=${DATABASE_SSL:-true} # Set false only for local Postgres without SSL
     volumes:
       - ./data:/app/data
       - ./uploads:/app/uploads

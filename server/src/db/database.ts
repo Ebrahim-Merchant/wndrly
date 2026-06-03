@@ -6,6 +6,24 @@ import { runMigrations } from './migrations';
 import { runSeeds } from './seeds';
 import { Place, Tag } from '../types';
 
+// ============================================================
+// PostgreSQL mode: when DATABASE_URL is set, use pg-adapter
+// ============================================================
+const USE_POSTGRES = !!process.env.DATABASE_URL;
+
+let db: Database.Database | ReturnType<typeof createPgDb>;
+
+function createPgDb() {
+  console.log('[DB] Using PostgreSQL (Supabase) mode');
+  // Dynamic require to avoid loading pg/deasync in SQLite mode
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { db: pgDb } = require('./pg-adapter');
+  return pgDb;
+}
+
+// ============================================================
+// SQLite mode (original)
+// ============================================================
 const dataDir = path.join(__dirname, '../../data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
@@ -13,62 +31,87 @@ if (!fs.existsSync(dataDir)) {
 
 const dbPath = path.join(dataDir, 'travel.db');
 
-let _db: Database.Database | null = null;
+let _sqliteDb: Database.Database | null = null;
 
-function initDb(): void {
-  if (_db) {
-    try { _db.exec('PRAGMA wal_checkpoint(TRUNCATE)'); } catch (e) {}
-    try { _db.close(); } catch (e) {}
-    _db = null;
+function initSqliteDb(): void {
+  if (_sqliteDb) {
+    try { _sqliteDb.exec('PRAGMA wal_checkpoint(TRUNCATE)'); } catch (e) {}
+    try { _sqliteDb.close(); } catch (e) {}
+    _sqliteDb = null;
   }
 
-  _db = new Database(dbPath);
-  _db.exec('PRAGMA journal_mode = WAL');
-  _db.exec('PRAGMA busy_timeout = 5000');
-  _db.exec('PRAGMA foreign_keys = ON');
+  _sqliteDb = new Database(dbPath);
+  _sqliteDb.exec('PRAGMA journal_mode = WAL');
+  _sqliteDb.exec('PRAGMA busy_timeout = 5000');
+  _sqliteDb.exec('PRAGMA foreign_keys = ON');
 
-  createTables(_db);
-  runMigrations(_db);
-
-  runSeeds(_db);
+  createTables(_sqliteDb);
+  runMigrations(_sqliteDb);
+  runSeeds(_sqliteDb);
 }
 
-initDb();
+// ============================================================
+// Initialize DB (Postgres or SQLite)
+// ============================================================
+if (USE_POSTGRES) {
+  db = createPgDb();
+} else {
+  initSqliteDb();
+  db = new Proxy({} as Database.Database, {
+    get(_, prop: string | symbol) {
+      if (!_sqliteDb) throw new Error('Database connection is not available (restore in progress?)');
+      const val = (_sqliteDb as unknown as Record<string | symbol, unknown>)[prop];
+      return typeof val === 'function' ? val.bind(_sqliteDb) : val;
+    },
+    set(_, prop: string | symbol, val: unknown) {
+      (_sqliteDb as unknown as Record<string | symbol, unknown>)[prop] = val;
+      return true;
+    },
+  }) as Database.Database;
 
-const db = new Proxy({} as Database.Database, {
-  get(_, prop: string | symbol) {
-    if (!_db) throw new Error('Database connection is not available (restore in progress?)');
-    const val = (_db as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof val === 'function' ? val.bind(_db) : val;
-  },
-  set(_, prop: string | symbol, val: unknown) {
-    (_db as unknown as Record<string | symbol, unknown>)[prop] = val;
-    return true;
-  },
-});
-
-if (process.env.DEMO_MODE?.toLowerCase() === 'true') {
-  try {
-    const { seedDemoData } = require('../demo/demo-seed');
-    seedDemoData(_db);
-  } catch (err: unknown) {
-    console.error('[Demo] Seed error:', err instanceof Error ? err.message : err);
+  if (process.env.DEMO_MODE?.toLowerCase() === 'true') {
+    try {
+      const { seedDemoData } = require('../demo/demo-seed');
+      seedDemoData(_sqliteDb);
+    } catch (err: unknown) {
+      console.error('[Demo] Seed error:', err instanceof Error ? err.message : err);
+    }
   }
 }
 
 function closeDb(): void {
-  if (_db) {
-    try { _db.exec('PRAGMA wal_checkpoint(TRUNCATE)'); } catch (e) {}
-    try { _db.close(); } catch (e) {}
-    _db = null;
-    console.log('[DB] Database connection closed');
+  if (USE_POSTGRES) {
+    try { (db as ReturnType<typeof createPgDb>).close?.(); } catch (e) {}
+    console.log('[DB] PostgreSQL pool closed');
+    return;
+  }
+  if (_sqliteDb) {
+    try { _sqliteDb.exec('PRAGMA wal_checkpoint(TRUNCATE)'); } catch (e) {}
+    try { _sqliteDb.close(); } catch (e) {}
+    _sqliteDb = null;
+    console.log('[DB] SQLite connection closed');
   }
 }
 
 function reinitialize(): void {
-  console.log('[DB] Reinitializing database connection after restore...');
-  if (_db) closeDb();
-  initDb();
+  if (USE_POSTGRES) {
+    console.log('[DB] PostgreSQL does not need reinitialization');
+    return;
+  }
+  console.log('[DB] Reinitializing SQLite connection after restore...');
+  if (_sqliteDb) closeDb();
+  initSqliteDb();
+  db = new Proxy({} as Database.Database, {
+    get(_, prop: string | symbol) {
+      if (!_sqliteDb) throw new Error('Database connection is not available (restore in progress?)');
+      const val = (_sqliteDb as unknown as Record<string | symbol, unknown>)[prop];
+      return typeof val === 'function' ? val.bind(_sqliteDb) : val;
+    },
+    set(_, prop: string | symbol, val: unknown) {
+      (_sqliteDb as unknown as Record<string | symbol, unknown>)[prop] = val;
+      return true;
+    },
+  }) as Database.Database;
   console.log('[DB] Database reinitialized successfully');
 }
 
@@ -84,7 +127,7 @@ interface PlaceWithTags extends Place {
 }
 
 function getPlaceWithTags(placeId: number | string): PlaceWithTags | null {
-  const place = db.prepare(`
+  const place = (db as Database.Database).prepare(`
     SELECT p.*, c.name as category_name, c.color as category_color, c.icon as category_icon
     FROM places p
     LEFT JOIN categories c ON p.category_id = c.id
@@ -93,7 +136,7 @@ function getPlaceWithTags(placeId: number | string): PlaceWithTags | null {
 
   if (!place) return null;
 
-  const tags = db.prepare(`
+  const tags = (db as Database.Database).prepare(`
     SELECT t.* FROM tags t
     JOIN place_tags pt ON t.id = pt.tag_id
     WHERE pt.place_id = ?
@@ -117,7 +160,7 @@ interface TripAccess {
 }
 
 function canAccessTrip(tripId: number | string, userId: number): TripAccess | undefined {
-  return db.prepare(`
+  return (db as Database.Database).prepare(`
     SELECT t.id, t.user_id FROM trips t
     LEFT JOIN trip_members m ON m.trip_id = t.id AND m.user_id = ?
     WHERE t.id = ? AND (t.user_id = ? OR m.user_id IS NOT NULL)
@@ -125,14 +168,16 @@ function canAccessTrip(tripId: number | string, userId: number): TripAccess | un
 }
 
 function isOwner(tripId: number | string, userId: number): boolean {
-  return !!db.prepare('SELECT id FROM trips WHERE id = ? AND user_id = ?').get(tripId, userId);
+  return !!(db as Database.Database).prepare('SELECT id FROM trips WHERE id = ? AND user_id = ?').get(tripId, userId);
 }
 
-try {
-  const { backfillFlightEndpoints } = require('../services/airportService');
-  backfillFlightEndpoints();
-} catch (err) {
-  console.error('[DB] Flight endpoint backfill failed:', err);
+if (!USE_POSTGRES) {
+  try {
+    const { backfillFlightEndpoints } = require('../services/airportService');
+    backfillFlightEndpoints();
+  } catch (err) {
+    console.error('[DB] Flight endpoint backfill failed:', err);
+  }
 }
 
 export { db, closeDb, reinitialize, getPlaceWithTags, canAccessTrip, isOwner };

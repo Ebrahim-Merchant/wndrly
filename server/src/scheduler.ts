@@ -215,8 +215,13 @@ function startTodoReminders(): void {
   if (todoReminderTask) { todoReminderTask.stop(); todoReminderTask = null; }
 
   const { db } = require('./db/database');
+  let enabled = true;
+  try {
   const getSetting = (key: string) => (db.prepare('SELECT value FROM app_settings WHERE key = ?').get(key) as { value: string } | undefined)?.value;
-  const enabled = getSetting('notify_todo_due') !== 'false';
+  enabled = getSetting('notify_todo_due') !== 'false';
+  } catch (err) {
+    logInfo('Todo due reminders: DB not available yet, defaulting to enabled');
+  }
   if (!enabled) {
     logInfo('Todo due reminders: disabled in settings');
     return;
