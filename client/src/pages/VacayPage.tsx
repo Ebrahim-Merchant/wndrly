@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { useTranslation } from '../i18n'
 import { useVacayStore } from '../store/vacayStore'
 import { addListener, removeListener } from '../api/websocket'
+import { VacaySkeleton } from '../components/UI/Skeleton'
 import VacayCalendar from '../components/Vacay/VacayCalendar'
 import VacayPersons from '../components/Vacay/VacayPersons'
 import VacayStats from '../components/Vacay/VacayStats'
@@ -51,13 +52,7 @@ export default function VacayPage(): React.ReactElement {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-        <div className="flex items-center justify-center" style={{ paddingTop: 0, minHeight: 'calc(100vh - var(--nav-h))' }}>
-          <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-primary)', borderTopColor: 'var(--text-primary)' }} />
-        </div>
-      </div>
-    )
+    return <VacaySkeleton />
   }
 
   // Sidebar content (shared between desktop sidebar and mobile drawer)

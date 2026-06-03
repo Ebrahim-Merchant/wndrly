@@ -8,6 +8,7 @@ import { useJourneyStore } from '../store/journeyStore'
 import { useAuthStore } from '../store/authStore'
 import { useTranslation } from '../i18n'
 import { journeyApi, authApi, addonsApi, mapsApi } from '../api/client'
+import { JourneyDetailSkeleton } from '../components/UI/Skeleton'
 import { addListener, removeListener } from '../api/websocket'
 import JourneyMap from '../components/Journey/JourneyMapAuto'
 import { DAY_COLORS } from '../components/Journey/dayColors'
@@ -333,13 +334,7 @@ export default function JourneyDetailPage() {
   }, [current?.trips])
 
   if (loading || !current) {
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <div style={{ paddingTop: 0 }} className="flex justify-center py-20">
-          <div className="w-6 h-6 border-2 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
-        </div>
-      </div>
-    )
+    return <JourneyDetailSkeleton />
   }
 
   const timelineEntries = current.entries.filter(e => (!hideSkeletons || e.type !== 'skeleton'))

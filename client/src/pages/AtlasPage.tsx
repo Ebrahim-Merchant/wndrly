@@ -7,6 +7,7 @@ import CustomSelect from '../components/shared/CustomSelect'
 import { Globe, MapPin, Briefcase, Calendar, Flag, ChevronRight, PanelLeftOpen, PanelLeftClose, X, Star, Plus, Trash2, Search } from 'lucide-react'
 import L from 'leaflet'
 import type { AtlasPlace, GeoJsonFeatureCollection, TranslationFn } from '../types'
+import { AtlasSkeleton } from '../components/UI/Skeleton'
 
 // Convert country code to flag emoji
 interface AtlasCountry {
@@ -762,13 +763,7 @@ export default function AtlasPage(): React.ReactElement {
   const countries = data?.countries || []
 
   if (loading) {
-    return (
-      <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-        <div className="flex items-center justify-center" style={{ paddingTop: 0, minHeight: '100vh' }}>
-          <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border-primary)', borderTopColor: 'var(--text-primary)' }} />
-        </div>
-      </div>
-    )
+    return <AtlasSkeleton />
   }
 
   return (

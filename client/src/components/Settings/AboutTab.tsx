@@ -251,7 +251,7 @@ export default function AboutTab({ appVersion }: Props): React.ReactElement {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <a
-          href="https://ko-fi.com/mauriceboe"
+          href="https://wndrly.ebrahim.world"
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-xl border overflow-hidden flex items-center gap-4 px-5 py-4 transition-[border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
@@ -269,7 +269,7 @@ export default function AboutTab({ appVersion }: Props): React.ReactElement {
           <ExternalLink size={14} className="ml-auto flex-shrink-0" style={{ color: 'var(--text-faint)' }} />
         </a>
         <a
-          href="https://buymeacoffee.com/mauriceboe"
+          href="https://wndrly.ebrahim.world"
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-xl border overflow-hidden flex items-center gap-4 px-5 py-4 transition-[border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
@@ -308,7 +308,7 @@ export default function AboutTab({ appVersion }: Props): React.ReactElement {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
         <a
-          href="https://github.com/mauriceboe/TREK/issues/new?template=bug_report.yml"
+          href="https://wndrly.ebrahim.world"
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-xl border overflow-hidden flex items-center gap-4 px-5 py-4 transition-[border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
@@ -326,7 +326,7 @@ export default function AboutTab({ appVersion }: Props): React.ReactElement {
           <ExternalLink size={14} className="ml-auto flex-shrink-0" style={{ color: 'var(--text-faint)' }} />
         </a>
         <a
-          href="https://github.com/mauriceboe/TREK/discussions/new?category=feature-requests"
+          href="https://wndrly.ebrahim.world"
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-xl border overflow-hidden flex items-center gap-4 px-5 py-4 transition-[border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
@@ -344,7 +344,7 @@ export default function AboutTab({ appVersion }: Props): React.ReactElement {
           <ExternalLink size={14} className="ml-auto flex-shrink-0" style={{ color: 'var(--text-faint)' }} />
         </a>
         <a
-          href="https://github.com/mauriceboe/TREK/wiki"
+          href="https://wndrly.ebrahim.world"
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-xl border overflow-hidden flex items-center gap-4 px-5 py-4 transition-[border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"

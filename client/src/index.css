@@ -839,3 +839,15 @@ html.dark button.bg-slate-900:disabled {
   background-color: #f87060 !important;
   opacity: 0.4 !important;
 }
+
+/* ── Skeleton Loader ─────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+:root {
+  --skeleton-bg: #e5e7eb;
+}
+html.dark {
+  --skeleton-bg: #27272a;
+}

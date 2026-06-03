@@ -13,13 +13,12 @@ import { useToast } from '../components/shared/Toast'
 import { useCountUp } from '../hooks/useCountUp'
 import CategoryManager from '../components/Admin/CategoryManager'
 import BackupPanel from '../components/Admin/BackupPanel'
-import GitHubPanel from '../components/Admin/GitHubPanel'
 import AddonManager from '../components/Admin/AddonManager'
 import PackingTemplateManager from '../components/Admin/PackingTemplateManager'
 import AuditLogPanel from '../components/Admin/AuditLogPanel'
 import AdminMcpTokensPanel from '../components/Admin/AdminMcpTokensPanel'
 import PermissionsPanel from '../components/Admin/PermissionsPanel'
-import { Users, Map, Briefcase, Shield, Trash2, Edit2, FileText, Eye, EyeOff, Save, CheckCircle, XCircle, Loader2, UserPlus, ArrowUpCircle, ExternalLink, Download, Sun, Link2, Copy, Plus, RefreshCw, AlertTriangle, SlidersHorizontal, UserCog, Puzzle, Settings as SettingsIcon, Bell, Database, ScrollText, KeyRound, GitBranch, Bug } from 'lucide-react'
+import { Users, Map, Briefcase, Shield, Trash2, Edit2, FileText, Eye, EyeOff, Save, CheckCircle, XCircle, Loader2, UserPlus, ArrowUpCircle, ExternalLink, Download, Sun, Link2, Copy, Plus, RefreshCw, AlertTriangle, SlidersHorizontal, UserCog, Puzzle, Settings as SettingsIcon, Bell, Database, ScrollText, KeyRound, Bug } from 'lucide-react'
 import CustomSelect from '../components/shared/CustomSelect'
 import PageSidebar, { type PageSidebarTab } from '../components/Layout/PageSidebar'
 
@@ -113,7 +112,7 @@ function AdminNotificationsPanel({ t, toast }: { t: (k: string) => string; toast
     <div className="space-y-4">
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
-          <h2 className="font-semibold text-slate-900">{t('admin.tabs.notifications')}</h2>
+          <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.tabs.notifications')}</h2>
           <p className="text-xs text-slate-400 mt-1">{t('admin.notifications.adminNotificationsHint')}</p>
         </div>
         <div className="p-6">
@@ -193,7 +192,6 @@ export default function AdminPage(): React.ReactElement {
     { id: 'backup', label: t('admin.tabs.backup'), icon: Database },
     { id: 'audit', label: t('admin.tabs.audit'), icon: ScrollText },
     ...(mcpEnabled ? [{ id: 'mcp-tokens', label: t('admin.tabs.mcpTokens'), icon: KeyRound }] : []),
-    { id: 'github', label: t('admin.tabs.github'), icon: GitBranch },
     ...(devMode ? [{ id: 'dev-notifications', label: 'Dev: Notifications', icon: Bug }] : []),
   ]
 
@@ -598,7 +596,7 @@ export default function AdminPage(): React.ReactElement {
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                  <h2 className="font-semibold text-slate-900">{t('admin.tabs.users')}</h2>
+                  <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.tabs.users')}</h2>
                   <p className="text-xs text-slate-400 mt-1">{users.length} {t('admin.stats.users')}</p>
                 </div>
                 <button
@@ -700,7 +698,7 @@ export default function AdminPage(): React.ReactElement {
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mt-6">
               <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                  <h2 className="font-semibold text-slate-900">{t('admin.invite.title')}</h2>
+                  <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.invite.title')}</h2>
                   <p className="text-xs text-slate-400 mt-1">{t('admin.invite.subtitle')}</p>
                 </div>
                 <button
@@ -826,7 +824,7 @@ export default function AdminPage(): React.ReactElement {
               {/* Authentication Methods */}
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">{t('admin.authMethods')}</h2>
+                  <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.authMethods')}</h2>
                 </div>
                 <div className="p-6 space-y-5">
                   {envOverrideOidcOnly && (
@@ -917,7 +915,7 @@ export default function AdminPage(): React.ReactElement {
               {/* Require 2FA for all users */}
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">{t('admin.requireMfa')}</h2>
+                  <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.requireMfa')}</h2>
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between">
@@ -943,7 +941,7 @@ export default function AdminPage(): React.ReactElement {
               {/* Allowed File Types */}
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">{t('admin.fileTypes')}</h2>
+                  <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.fileTypes')}</h2>
                   <p className="text-xs text-slate-400 mt-1">{t('admin.fileTypesHint')}</p>
                 </div>
                 <div className="p-6">
@@ -976,7 +974,7 @@ export default function AdminPage(): React.ReactElement {
               {/* API Keys */}
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">{t('admin.apiKeys')}</h2>
+                  <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.apiKeys')}</h2>
                   <p className="text-xs text-slate-400 mt-1">{t('admin.apiKeysHint')}</p>
                 </div>
                 <div className="p-6 space-y-4">
@@ -1138,7 +1136,7 @@ export default function AdminPage(): React.ReactElement {
               {/* OIDC / SSO Configuration */}
               <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="font-semibold text-slate-900">{t('admin.oidcTitle')}</h2>
+                  <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.oidcTitle')}</h2>
                   <p className="text-xs text-slate-400 mt-1">{t('admin.oidcSubtitle')}</p>
                 </div>
                 <div className="p-6 space-y-4">
@@ -1286,7 +1284,7 @@ export default function AdminPage(): React.ReactElement {
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                      <h2 className="font-semibold text-slate-900">{t('admin.notifications.emailPanel.title')}</h2>
+                      <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.notifications.emailPanel.title')}</h2>
                       <p className="text-xs text-slate-400 mt-1">{t('admin.smtp.hint')}</p>
                     </div>
                     <button
@@ -1362,7 +1360,7 @@ export default function AdminPage(): React.ReactElement {
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 flex items-center justify-between">
                     <div>
-                      <h2 className="font-semibold text-slate-900">{t('admin.notifications.webhookPanel.title')}</h2>
+                      <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.notifications.webhookPanel.title')}</h2>
                       <p className="text-xs text-slate-400 mt-1">{t('admin.webhook.hint')}</p>
                     </div>
                     <button
@@ -1380,7 +1378,7 @@ export default function AdminPage(): React.ReactElement {
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 flex items-center justify-between">
                     <div>
-                      <h2 className="font-semibold text-slate-900">{t('admin.notifications.ntfy')}</h2>
+                      <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.notifications.ntfy')}</h2>
                       <p className="text-xs text-slate-400 mt-1">{t('admin.ntfy.hint') || 'Allow users to configure their own ntfy topics for push notifications.'}</p>
                     </div>
                     <button
@@ -1398,7 +1396,7 @@ export default function AdminPage(): React.ReactElement {
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                      <h2 className="font-semibold text-slate-900">{t('admin.notifications.inappPanel.title')}</h2>
+                      <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.notifications.inappPanel.title')}</h2>
                       <p className="text-xs text-slate-400 mt-1">{t('admin.notifications.inappPanel.hint')}</p>
                     </div>
                     <div className="relative inline-flex h-6 w-11 items-center rounded-full flex-shrink-0"
@@ -1413,7 +1411,7 @@ export default function AdminPage(): React.ReactElement {
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 flex items-center justify-between">
                     <div>
-                      <h2 className="font-semibold text-slate-900">{t('admin.notifications.tripReminders.title')}</h2>
+                      <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.notifications.tripReminders.title')}</h2>
                       <p className="text-xs text-slate-400 mt-1">{t('admin.notifications.tripReminders.hint')}</p>
                     </div>
                     <button
@@ -1443,7 +1441,7 @@ export default function AdminPage(): React.ReactElement {
                 {/* Admin Webhook Panel */}
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100">
-                    <h2 className="font-semibold text-slate-900">{t('admin.notifications.adminWebhookPanel.title')}</h2>
+                    <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.notifications.adminWebhookPanel.title')}</h2>
                     <p className="text-xs text-slate-400 mt-1">{t('admin.notifications.adminWebhookPanel.hint')}</p>
                   </div>
                   <div className="p-6 space-y-3">
@@ -1493,7 +1491,7 @@ export default function AdminPage(): React.ReactElement {
                 {/* Admin Ntfy Panel */}
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100">
-                    <h2 className="font-semibold text-slate-900">{t('admin.notifications.adminNtfyPanel.title')}</h2>
+                    <h2 className="font-semibold text-slate-900 dark:text-zinc-100">{t('admin.notifications.adminNtfyPanel.title')}</h2>
                     <p className="text-xs text-slate-400 mt-1">{t('admin.notifications.adminNtfyPanel.hint')}</p>
                   </div>
                   <div className="p-6 space-y-3">
@@ -1602,8 +1600,6 @@ export default function AdminPage(): React.ReactElement {
           {activeTab === 'audit' && <AuditLogPanel serverTimezone={serverTimezone} />}
 
           {activeTab === 'mcp-tokens' && <AdminMcpTokensPanel />}
-
-          {activeTab === 'github' && <GitHubPanel isPrerelease={updateInfo?.is_prerelease ?? false} />}
 
           {activeTab === 'defaults' && <DefaultUserSettingsTab />}
 

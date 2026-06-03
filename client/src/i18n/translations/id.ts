@@ -399,8 +399,8 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'settings.about.featureRequestHint': 'Sarankan fitur baru',
   'settings.about.wikiHint': 'Dokumentasi & panduan',
   'settings.about.supporters.badge': 'Pendukung Bulanan',
-  'settings.about.supporters.title': 'Rekan perjalanan untuk TREK',
-  'settings.about.supporters.subtitle': 'Saat kamu merencanakan rute berikutnya, orang-orang ini ikut merencanakan masa depan TREK. Kontribusi bulanan mereka langsung masuk ke pengembangan dan jam kerja nyata — supaya TREK tetap Open Source.',
+  'settings.about.supporters.title': 'Rekan perjalanan untuk Wndrly',
+  'settings.about.supporters.subtitle': 'Saat kamu merencanakan rute berikutnya, orang-orang ini ikut merencanakan masa depan Wndrly. Kontribusi bulanan mereka langsung masuk ke pengembangan dan jam kerja nyata — supaya Wndrly tetap Open Source.',
   'settings.about.supporters.since': 'pendukung sejak {date}',
   'settings.about.supporters.tierEmpty': 'Jadilah yang pertama',
   'settings.about.supporter.tier.noReturnTicket': 'No Return Ticket',
@@ -408,7 +408,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'settings.about.supporter.tier.businessClassDreamer': 'Business Class Dreamer',
   'settings.about.supporter.tier.budgetTraveller': 'Budget Traveller',
   'settings.about.supporter.tier.hostelBunkmate': 'Hostel Bunkmate',
-  'settings.about.description': 'TREK adalah perencana perjalanan self-hosted yang membantu kamu mengatur perjalanan dari ide pertama hingga kenangan terakhir. Perencanaan harian, anggaran, daftar bawaan, foto dan masih banyak lagi — semua di satu tempat, di servermu sendiri.',
+  'settings.about.description': 'Wndrly adalah perencana perjalanan self-hosted yang membantu kamu mengatur perjalanan dari ide pertama hingga kenangan terakhir. Perencanaan harian, anggaran, daftar bawaan, foto dan masih banyak lagi — semua di satu tempat, di servermu sendiri.',
   'settings.about.madeWith': 'Dibuat dengan',
   'settings.about.madeBy': 'oleh Maurice dan komunitas open-source yang terus berkembang.',
   'settings.username': 'Nama pengguna',
@@ -496,7 +496,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'login.signingIn': 'Sedang masuk…',
   'login.signIn': 'Masuk',
   'login.createAdmin': 'Buat Akun Admin',
-  'login.createAdminHint': 'Siapkan akun admin pertama untuk TREK.',
+  'login.createAdminHint': 'Siapkan akun admin pertama untuk Wndrly.',
   'login.setNewPassword': 'Atur Kata Sandi Baru',
   'login.setNewPasswordHint': 'Kamu harus mengganti kata sandi sebelum melanjutkan.',
   'login.createAccount': 'Buat Akun',
@@ -715,7 +715,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   // Addons
   'admin.tabs.addons': 'Addon',
   'admin.addons.title': 'Addon',
-  'admin.addons.subtitle': 'Aktifkan atau nonaktifkan fitur untuk menyesuaikan pengalaman TREK kamu.',
+  'admin.addons.subtitle': 'Aktifkan atau nonaktifkan fitur untuk menyesuaikan pengalaman Wndrly kamu.',
   'admin.addons.catalog.packing.name': 'Daftar',
   'admin.addons.catalog.packing.description': 'Daftar packing dan tugas to-do untuk perjalananmu',
   'admin.addons.catalog.budget.name': 'Anggaran',
@@ -748,7 +748,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   // Weather info
   'admin.weather.title': 'Data Cuaca',
   'admin.weather.badge': 'Sejak 24 Maret 2026',
-  'admin.weather.description': 'TREK menggunakan Open-Meteo sebagai sumber data cuaca. Open-Meteo adalah layanan cuaca gratis dan open-source — tidak perlu kunci API.',
+  'admin.weather.description': 'Wndrly menggunakan Open-Meteo sebagai sumber data cuaca. Open-Meteo adalah layanan cuaca gratis dan open-source — tidak perlu kunci API.',
   'admin.weather.forecast': 'Prakiraan 16 hari',
   'admin.weather.forecastDesc': 'Sebelumnya 5 hari (OpenWeatherMap)',
   'admin.weather.climate': 'Data iklim historis',
@@ -807,14 +807,14 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'admin.github.loading': 'Memuat...',
   'admin.github.error': 'Gagal memuat rilis',
   'admin.github.by': 'oleh',
-  'admin.github.support': 'Bantu saya terus mengembangkan TREK',
+  'admin.github.support': 'Bantu saya terus mengembangkan Wndrly',
 
   'admin.update.available': 'Pembaruan tersedia',
-  'admin.update.text': 'TREK {version} tersedia. Kamu menggunakan {current}.',
+  'admin.update.text': 'Wndrly {version} tersedia. Kamu menggunakan {current}.',
   'admin.update.button': 'Lihat di GitHub',
   'admin.update.install': 'Pasang Pembaruan',
   'admin.update.confirmTitle': 'Pasang Pembaruan?',
-  'admin.update.confirmText': 'TREK akan diperbarui dari {current} ke {version}. Server akan restart otomatis setelahnya.',
+  'admin.update.confirmText': 'Wndrly akan diperbarui dari {current} ke {version}. Server akan restart otomatis setelahnya.',
   'admin.update.dataInfo': 'Semua datamu (perjalanan, pengguna, kunci API, unggahan, Vacay, Atlas, anggaran) akan dipertahankan.',
   'admin.update.warning': 'Aplikasi akan tidak tersedia sebentar selama restart.',
   'admin.update.confirm': 'Perbarui Sekarang',
@@ -824,7 +824,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'admin.update.backupHint': 'Kami merekomendasikan membuat backup sebelum memperbarui.',
   'admin.update.backupLink': 'Pergi ke Backup',
   'admin.update.howTo': 'Cara Memperbarui',
-  'admin.update.dockerText': 'Instans TREK kamu berjalan di Docker. Untuk memperbarui ke {version}, jalankan perintah berikut di servermu:',
+  'admin.update.dockerText': 'Instans Wndrly kamu berjalan di Docker. Untuk memperbarui ke {version}, jalankan perintah berikut di servermu:',
   'admin.update.reloadHint': 'Muat ulang halaman dalam beberapa detik.',
 
   // Vacay addon
@@ -885,9 +885,9 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'vacay.carryOver': 'Carry Over Cuti',
   'vacay.carryOverHint': 'Otomatis pindahkan sisa hari cuti ke tahun berikutnya',
   'vacay.sharing': 'Berbagi',
-  'vacay.sharingHint': 'Bagikan rencana cuti kamu dengan pengguna TREK lainnya',
+  'vacay.sharingHint': 'Bagikan rencana cuti kamu dengan pengguna Wndrly lainnya',
   'vacay.owner': 'Pemilik',
-  'vacay.shareEmailPlaceholder': 'Email pengguna TREK',
+  'vacay.shareEmailPlaceholder': 'Email pengguna Wndrly',
   'vacay.shareSuccess': 'Rencana berhasil dibagikan',
   'vacay.shareError': 'Gagal membagikan rencana',
   'vacay.dissolve': 'Pisahkan Gabungan',
@@ -899,7 +899,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'vacay.noData': 'Tidak ada data',
   'vacay.changeColor': 'Ganti warna',
   'vacay.inviteUser': 'Undang Pengguna',
-  'vacay.inviteHint': 'Undang pengguna TREK lain untuk berbagi kalender cuti bersama.',
+  'vacay.inviteHint': 'Undang pengguna Wndrly lain untuk berbagi kalender cuti bersama.',
   'vacay.selectUser': 'Pilih pengguna',
   'vacay.sendInvite': 'Kirim Undangan',
   'vacay.inviteSent': 'Undangan terkirim',
@@ -1891,7 +1891,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
 
   // Notification test keys (dev only)
   'notifications.versionAvailable.title': 'Pembaruan Tersedia',
-  'notifications.versionAvailable.text': 'TREK {version} kini tersedia.',
+  'notifications.versionAvailable.text': 'Wndrly {version} kini tersedia.',
   'notifications.versionAvailable.button': 'Lihat Detail',
   'notifications.test.title': 'Notifikasi uji dari {actor}',
   'notifications.test.text': 'Ini adalah notifikasi uji sederhana.',
@@ -1969,7 +1969,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'notif.packing_tagged.title': 'Penugasan Perlengkapan',
   'notif.packing_tagged.text': '{actor} menugaskanmu ke {category} di {trip}',
   'notif.version_available.title': 'Versi Baru Tersedia',
-  'notif.version_available.text': 'TREK {version} kini tersedia',
+  'notif.version_available.text': 'Wndrly {version} kini tersedia',
   'notif.action.view_trip': 'Lihat Perjalanan',
   'notif.action.view_collab': 'Lihat Pesan',
   'notif.action.view_packing': 'Lihat Perlengkapan',
@@ -2218,7 +2218,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
 
   // Journey — PDF Export
   'journey.pdf.journeyBook': 'Buku Journey',
-  'journey.pdf.madeWith': 'Dibuat dengan TREK',
+  'journey.pdf.madeWith': 'Dibuat dengan Wndrly',
   'journey.pdf.day': 'Hari',
   'journey.pdf.theEnd': 'Tamat',
   'journey.pdf.saveAsPdf': 'Simpan sebagai PDF',
@@ -2354,10 +2354,10 @@ const id: Record<string, string | { name: string; category: string }[]> = {
 
 
   // System notices
-  'system_notice.welcome_v1.title': 'Selamat datang di TREK',
+  'system_notice.welcome_v1.title': 'Selamat datang di Wndrly',
   'system_notice.welcome_v1.body': 'Perencana perjalanan lengkap Anda. Buat itinerari, bagikan perjalanan dengan teman, dan tetap terorganisir — online maupun offline.',
   'system_notice.welcome_v1.cta_label': 'Rencanakan perjalanan',
-  'system_notice.welcome_v1.hero_alt': 'Destinasi wisata indah dengan antarmuka TREK',
+  'system_notice.welcome_v1.hero_alt': 'Destinasi wisata indah dengan antarmuka Wndrly',
   'system_notice.welcome_v1.highlight_plan': 'Itinerari harian untuk setiap perjalanan',
   'system_notice.welcome_v1.highlight_share': 'Berkolaborasi dengan teman perjalanan',
   'system_notice.welcome_v1.highlight_offline': 'Bekerja offline di ponsel',
@@ -2370,7 +2370,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
   'system_notice.pager.position': 'Pemberitahuan {current} dari {total}',
   // System notices — 3.0.0 upgrade
   'system_notice.v3_photos.title': 'Foto dipindahkan di 3.0',
-  'system_notice.v3_photos.body': '**Foto** di Perencana Perjalanan telah dihapus. Foto Anda aman — TREK tidak pernah mengubah perpustakaan Immich atau Synology Anda.\n\nFoto kini ada di addon **Journey**. Journey bersifat opsional — jika belum tersedia, minta admin untuk mengaktifkannya di Admin → Addon.',
+  'system_notice.v3_photos.body': '**Foto** di Perencana Perjalanan telah dihapus. Foto Anda aman — Wndrly tidak pernah mengubah perpustakaan Immich atau Synology Anda.\n\nFoto kini ada di addon **Journey**. Journey bersifat opsional — jika belum tersedia, minta admin untuk mengaktifkannya di Admin → Addon.',
   'system_notice.v3_journey.title': 'Kenali Journey — jurnal perjalanan',
   'system_notice.v3_journey.body': 'Dokumentasikan perjalanan Anda sebagai cerita hidup dengan linimasa, galeri foto, dan peta interaktif.',
   'system_notice.v3_journey.cta_label': 'Buka Journey',
@@ -2395,7 +2395,7 @@ const id: Record<string, string | { name: string; category: string }[]> = {
 
   // System notices — personal thank you
   'system_notice.v3_thankyou.title': 'Catatan pribadi dari saya',
-  'system_notice.v3_thankyou.body': 'Sebelum kamu lanjut — saya ingin berhenti sejenak.\n\nTREK dimulai sebagai proyek sampingan yang saya buat untuk perjalanan saya sendiri. Saya tidak pernah membayangkan ia akan tumbuh menjadi sesuatu yang dipercaya oleh 4.000 dari kalian untuk merencanakan petualangan. Setiap bintang, setiap issue, setiap permintaan fitur — saya membaca semuanya, dan itulah yang membuat saya terus bertahan di malam-malam larut antara pekerjaan penuh waktu dan kuliah.\n\nSaya ingin kalian tahu: TREK akan selalu open source, selalu self-hosted, selalu milik kalian. Tanpa pelacakan, tanpa langganan, tanpa syarat tersembunyi. Hanya sebuah alat yang dibuat oleh seseorang yang mencintai traveling sama seperti kalian.\n\nTerima kasih khusus untuk [jubnl](https://github.com/jubnl) — kamu telah menjadi kolaborator yang luar biasa. Begitu banyak hal yang membuat versi 3.0 hebat memiliki jejakmu. Terima kasih telah percaya pada proyek ini ketika masih kasar.\n\nDan untuk setiap dari kalian yang melaporkan bug, menerjemahkan string, membagikan TREK kepada teman, atau sekadar menggunakannya untuk merencanakan perjalanan — **terima kasih**. Kalianlah alasan semua ini ada.\n\nUntuk lebih banyak petualangan bersama.\n\n— Maurice\n\n---\n\n[Bergabunglah dengan komunitas di Discord](https://discord.gg/7Q6M6jDwzf)\n\nJika TREK membuat perjalananmu lebih baik, [secangkir kopi kecil](https://ko-fi.com/mauriceboe) selalu membantu menjaga lampu tetap menyala.',
+  'system_notice.v3_thankyou.body': 'Sebelum kamu lanjut — saya ingin berhenti sejenak.\n\nWndrly dimulai sebagai proyek sampingan yang saya buat untuk perjalanan saya sendiri. Saya tidak pernah membayangkan ia akan tumbuh menjadi sesuatu yang dipercaya oleh 4.000 dari kalian untuk merencanakan petualangan. Setiap bintang, setiap issue, setiap permintaan fitur — saya membaca semuanya, dan itulah yang membuat saya terus bertahan di malam-malam larut antara pekerjaan penuh waktu dan kuliah.\n\nSaya ingin kalian tahu: Wndrly akan selalu open source, selalu self-hosted, selalu milik kalian. Tanpa pelacakan, tanpa langganan, tanpa syarat tersembunyi. Hanya sebuah alat yang dibuat oleh seseorang yang mencintai traveling sama seperti kalian.\n\nTerima kasih khusus untuk [jubnl](https://github.com/jubnl) — kamu telah menjadi kolaborator yang luar biasa. Begitu banyak hal yang membuat versi 3.0 hebat memiliki jejakmu. Terima kasih telah percaya pada proyek ini ketika masih kasar.\n\nDan untuk setiap dari kalian yang melaporkan bug, menerjemahkan string, membagikan Wndrly kepada teman, atau sekadar menggunakannya untuk merencanakan perjalanan — **terima kasih**. Kalianlah alasan semua ini ada.\n\nUntuk lebih banyak petualangan bersama.\n\n— Maurice\n\n---\n\n[Bergabunglah dengan komunitas di Discord](https://discord.gg/7Q6M6jDwzf)\n\nJika Wndrly membuat perjalananmu lebih baik, [secangkir kopi kecil](https://ko-fi.com/mauriceboe) selalu membantu menjaga lampu tetap menyala.',
   // System notices — 3.0.14
   'system_notice.v3014_whitespace_collision.title': 'Tindakan diperlukan: konflik akun pengguna',
   'system_notice.v3014_whitespace_collision.body': 'Pembaruan 3.0.14 mendeteksi satu atau lebih konflik nama pengguna atau email yang disebabkan oleh spasi di awal atau akhir nilai yang tersimpan. Akun yang terpengaruh telah diganti nama secara otomatis. Periksa log server untuk baris yang dimulai dengan **[migration] WHITESPACE COLLISION** guna mengidentifikasi akun mana yang perlu ditinjau.',
