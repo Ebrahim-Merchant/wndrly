@@ -794,7 +794,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
         borderBottom: '1px solid var(--border-faint)',
         height: 52,
         gap: 8,
-      }} className="md:!left-60">
+      }}>
         {/* Back button */}
         <button
           onClick={() => navigate('/dashboard')}
@@ -846,7 +846,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
       </div>
 
       {/* Offset by navbar + tab bar (44px) */}
-      <div style={{ position: 'fixed', top: 52, left: 0, right: 0, bottom: 0, overflow: 'hidden', overscrollBehavior: 'contain' }} className="md:!left-60">
+      <div style={{ position: 'fixed', top: 52, left: 0, right: 0, bottom: 0, overflow: 'hidden', overscrollBehavior: 'contain' }} className="wndrly-page-root">
 
         {activeTab === 'plan' && (
           <div style={{ position: 'absolute', inset: 0 }}>

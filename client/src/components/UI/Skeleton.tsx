@@ -34,7 +34,7 @@ export function AtlasSkeleton() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
       {/* Simulated map area */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }} className="md:!left-60">
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }} className="wndrly-page-root">
         <Skeleton height="100%" borderRadius={0} style={{ background: 'var(--skeleton-bg, #e9ecef)' }} />
         {/* Floating panel placeholder */}
         <div style={{ position: 'absolute', top: 16, right: 16, width: 280, display: 'flex', flexDirection: 'column', gap: 8 }}>
