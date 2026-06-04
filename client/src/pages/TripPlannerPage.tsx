@@ -7,6 +7,7 @@ import { useSettingsStore } from '../store/settingsStore'
 import { MapViewAuto as MapView } from '../components/Map/MapViewAuto'
 import { getCached, fetchPhoto } from '../services/photoService'
 import DayPlanSidebar from '../components/Planner/DayPlanSidebar'
+import TimelineView from '../components/Planner/TimelineView'
 import PlacesSidebar from '../components/Planner/PlacesSidebar'
 import PlaceInspector from '../components/Planner/PlaceInspector'
 import DayDetailPanel from '../components/Planner/DayDetailPanel'
@@ -25,7 +26,7 @@ import FileManager from '../components/Files/FileManager'
 import BudgetPanel from '../components/Budget/BudgetPanel'
 import CollabPanel from '../components/Collab/CollabPanel'
 import { useToast } from '../components/shared/Toast'
-import { Map, X, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Ticket, PackageCheck, Wallet, FolderOpen, Users, Train, ArrowLeft } from 'lucide-react'
+import { Map, X, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Ticket, PackageCheck, Wallet, FolderOpen, Users, Train, ArrowLeft, LayoutList, Clock } from 'lucide-react'
 import InAppNotificationBell from '../components/Layout/InAppNotificationBell'
 import { useTranslation } from '../i18n'
 import { addonsApi, accommodationsApi, authApi, tripsApi, assignmentsApi, mapsApi } from '../api/client'
@@ -276,6 +277,10 @@ export default function TripPlannerPage(): React.ReactElement | null {
   const mobilePlacesScrollTopRef = useRef<number>(0)
   const [deletePlaceId, setDeletePlaceId] = useState<number | null>(null)
   const [deletePlaceIds, setDeletePlaceIds] = useState<number[] | null>(null)
+  const [leftPanelView, setLeftPanelView] = useState<'list' | 'timeline'>(() => {
+    return (sessionStorage.getItem(`trip-left-view-${tripId}`) as 'list' | 'timeline') || 'timeline'
+  })
+  const setLeftPanelViewPersist = (v: 'list' | 'timeline') => { setLeftPanelView(v); sessionStorage.setItem(`trip-left-view-${tripId}`, v) }
 
   useEffect(() => {
     if (!trip) return
@@ -777,7 +782,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
   if (!trip) return null
 
   return (
-    <div className="wndrly-page-root" style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', ...fontStyle }}>
+    <div className="wndrly-page-root" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', ...fontStyle }}>
       {/* Unified top bar: back, trip title, tabs, share */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 40,
@@ -876,7 +881,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
             <div className="hidden md:block" style={{ position: 'absolute', left: 10, top: 10, bottom: 10, zIndex: 20 }}>
               <button onClick={() => setLeftCollapsed(c => !c)}
                 style={{
-                  position: leftCollapsed ? 'fixed' : 'absolute', top: leftCollapsed ? 66 : 14, left: leftCollapsed ? 10 : undefined, right: leftCollapsed ? undefined : -28, zIndex: -1,
+                  position: leftCollapsed ? 'fixed' : 'absolute', top: leftCollapsed ? 66 : 14, left: leftCollapsed ? 250 : undefined, right: leftCollapsed ? undefined : -28, zIndex: leftCollapsed ? 1000 : -1,
                   width: 36, height: 36, borderRadius: leftCollapsed ? 10 : '0 10px 10px 0',
                   background: leftCollapsed ? '#000' : 'var(--sidebar-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                   boxShadow: leftCollapsed ? '0 2px 12px rgba(0,0,0,0.2)' : 'none', border: 'none',
@@ -899,6 +904,47 @@ export default function TripPlannerPage(): React.ReactElement | null {
                 transition: 'width 0.25s ease',
                 opacity: leftCollapsed ? 0 : 1,
               }}>
+                {/* View toggle */}
+                <div style={{ display: 'flex', gap: 4, padding: '10px 12px 0', flexShrink: 0 }}>
+                  <button
+                    onClick={() => setLeftPanelViewPersist('list')}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                      padding: '7px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
+                      background: leftPanelView === 'list' ? 'var(--accent)' : 'var(--bg-tertiary)',
+                      color: leftPanelView === 'list' ? 'var(--accent-text)' : 'var(--text-muted)',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <LayoutList size={13} /> List
+                  </button>
+                  <button
+                    onClick={() => setLeftPanelViewPersist('timeline')}
+                    style={{
+                      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                      padding: '7px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      fontFamily: 'inherit', fontSize: 12, fontWeight: 600,
+                      background: leftPanelView === 'timeline' ? 'var(--accent)' : 'var(--bg-tertiary)',
+                      color: leftPanelView === 'timeline' ? 'var(--accent-text)' : 'var(--text-muted)',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <Clock size={13} /> Timeline
+                  </button>
+                </div>
+                {leftPanelView === 'timeline' ? (
+                  <TimelineView
+                    tripId={tripId}
+                    days={days}
+                    places={places}
+                    categories={categories}
+                    assignments={assignments}
+                    selectedDayId={selectedDayId}
+                    onSelectDay={(dayId) => handleSelectDay(dayId)}
+                    onPlaceClick={handlePlaceClick}
+                  />
+                ) : (
                 <DayPlanSidebar
                   tripId={tripId}
                   trip={trip}
@@ -938,6 +984,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
                   onRouteRefresh={() => { if (selectedDayId) updateRouteForDay(selectedDayId) }}
                   onAddBookingToAssignment={can('day_edit', trip) ? (dayId, assignmentId) => { tripActions.setSelectedDay(dayId); setBookingForAssignmentId(assignmentId); setEditingReservation(null); setShowReservationModal(true) } : undefined}
                 />
+                )}
                 {!leftCollapsed && (
                   <div
                     onMouseDown={startResizeLeft}
@@ -952,7 +999,7 @@ export default function TripPlannerPage(): React.ReactElement | null {
             <div className="hidden md:block" style={{ position: 'absolute', right: 10, top: 10, bottom: 10, zIndex: 20 }}>
               <button onClick={() => setRightCollapsed(c => !c)}
                 style={{
-                  position: rightCollapsed ? 'fixed' : 'absolute', top: rightCollapsed ? 66 : 14, right: rightCollapsed ? 10 : undefined, left: rightCollapsed ? undefined : -28, zIndex: -1,
+                  position: rightCollapsed ? 'fixed' : 'absolute', top: rightCollapsed ? 66 : 14, right: rightCollapsed ? 10 : undefined, left: rightCollapsed ? undefined : -28, zIndex: rightCollapsed ? 1000 : -1,
                   width: 36, height: 36, borderRadius: rightCollapsed ? 10 : '10px 0 0 10px',
                   background: rightCollapsed ? '#000' : 'var(--sidebar-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                   boxShadow: rightCollapsed ? '0 2px 12px rgba(0,0,0,0.2)' : 'none', border: 'none',
@@ -1153,9 +1200,50 @@ export default function TripPlannerPage(): React.ReactElement | null {
                       <X size={14} />
                     </button>
                   </div>
-                  <div style={{ flex: 1, overflow: 'auto' }}>
+                  {mobileSidebarOpen === 'left' && (
+                    <div style={{ display: 'flex', gap: 4, padding: '10px 12px 0', flexShrink: 0, borderBottom: '1px solid var(--border-faint)' }}>
+                      <button
+                        onClick={() => setLeftPanelViewPersist('list')}
+                        style={{
+                          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                          padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                          fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+                          background: leftPanelView === 'list' ? 'var(--accent)' : 'var(--bg-tertiary)',
+                          color: leftPanelView === 'list' ? 'var(--accent-text)' : 'var(--text-muted)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <LayoutList size={14} /> List
+                      </button>
+                      <button
+                        onClick={() => setLeftPanelViewPersist('timeline')}
+                        style={{
+                          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                          padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                          fontFamily: 'inherit', fontSize: 13, fontWeight: 600,
+                          background: leftPanelView === 'timeline' ? 'var(--accent)' : 'var(--bg-tertiary)',
+                          color: leftPanelView === 'timeline' ? 'var(--accent-text)' : 'var(--text-muted)',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <Clock size={14} /> Timeline
+                      </button>
+                    </div>
+                  )}
+                  <div style={{ flex: 1, overflow: mobileSidebarOpen === 'left' && leftPanelView === 'timeline' ? 'hidden' : 'auto', display: 'flex', flexDirection: 'column' }}>
                     {mobileSidebarOpen === 'left'
-                      ? <DayPlanSidebar tripId={tripId} trip={trip} days={days} places={places} categories={categories} assignments={assignments} selectedDayId={selectedDayId} selectedPlaceId={selectedPlaceId} selectedAssignmentId={selectedAssignmentId} onSelectDay={(id) => { handleSelectDay(id); setMobileSidebarOpen(null) }} onPlaceClick={(placeId, assignmentId) => { handlePlaceClick(placeId, assignmentId) }} onReorder={handleReorder} onUpdateDayTitle={handleUpdateDayTitle} onAssignToDay={handleAssignToDay} onRouteCalculated={(r) => { if (r) { setRoute(r.coordinates); setRouteInfo({ distance: r.distanceText, duration: r.durationText }) } }} reservations={reservations} visibleConnectionIds={visibleConnections} onToggleConnection={toggleConnection} onAddReservation={(dayId) => { setEditingReservation(null); tripActions.setSelectedDay(dayId); setShowReservationModal(true); setMobileSidebarOpen(null) }} onAddPlace={() => { setEditingPlace(null); setShowPlaceForm(true); setMobileSidebarOpen(null) }} onDayDetail={(day) => { setShowDayDetail(day); setSelectedPlaceId(null); selectAssignment(null) }} accommodations={tripAccommodations} onNavigateToFiles={() => { setMobileSidebarOpen(null); handleTabChange('dateien') }} onExpandedDaysChange={setExpandedDayIds} pushUndo={pushUndo} canUndo={canUndo} lastActionLabel={lastActionLabel} onUndo={handleUndo} onEditTransport={can('day_edit', trip) ? (reservation) => { setEditingTransport(reservation); setTransportModalDayId(reservation.day_id ?? null); setShowTransportModal(true); setMobileSidebarOpen(null) } : undefined} onEditReservation={can('reservation_edit', trip) ? (r) => { setEditingReservation(r); setShowReservationModal(true); setMobileSidebarOpen(null) } : undefined} initialScrollTop={mobilePlanScrollTopRef.current} onScrollTopChange={(top) => { mobilePlanScrollTopRef.current = top }} />
+                      ? leftPanelView === 'timeline'
+                        ? <TimelineView
+                            tripId={tripId}
+                            days={days}
+                            places={places}
+                            categories={categories}
+                            assignments={assignments}
+                            selectedDayId={selectedDayId}
+                            onSelectDay={(dayId) => handleSelectDay(dayId, true)}
+                            onPlaceClick={handlePlaceClick}
+                          />
+                        : <DayPlanSidebar tripId={tripId} trip={trip} days={days} places={places} categories={categories} assignments={assignments} selectedDayId={selectedDayId} selectedPlaceId={selectedPlaceId} selectedAssignmentId={selectedAssignmentId} onSelectDay={(id) => { handleSelectDay(id); setMobileSidebarOpen(null) }} onPlaceClick={(placeId, assignmentId) => { handlePlaceClick(placeId, assignmentId) }} onReorder={handleReorder} onUpdateDayTitle={handleUpdateDayTitle} onAssignToDay={handleAssignToDay} onRouteCalculated={(r) => { if (r) { setRoute(r.coordinates); setRouteInfo({ distance: r.distanceText, duration: r.durationText }) } }} reservations={reservations} visibleConnectionIds={visibleConnections} onToggleConnection={toggleConnection} onAddReservation={(dayId) => { setEditingReservation(null); tripActions.setSelectedDay(dayId); setShowReservationModal(true); setMobileSidebarOpen(null) }} onAddPlace={() => { setEditingPlace(null); setShowPlaceForm(true); setMobileSidebarOpen(null) }} onDayDetail={(day) => { setShowDayDetail(day); setSelectedPlaceId(null); selectAssignment(null) }} accommodations={tripAccommodations} onNavigateToFiles={() => { setMobileSidebarOpen(null); handleTabChange('dateien') }} onExpandedDaysChange={setExpandedDayIds} pushUndo={pushUndo} canUndo={canUndo} lastActionLabel={lastActionLabel} onUndo={handleUndo} onEditTransport={can('day_edit', trip) ? (reservation) => { setEditingTransport(reservation); setTransportModalDayId(reservation.day_id ?? null); setShowTransportModal(true); setMobileSidebarOpen(null) } : undefined} onEditReservation={can('reservation_edit', trip) ? (r) => { setEditingReservation(r); setShowReservationModal(true); setMobileSidebarOpen(null) } : undefined} initialScrollTop={mobilePlanScrollTopRef.current} onScrollTopChange={(top) => { mobilePlanScrollTopRef.current = top }} />
                       : <PlacesSidebar tripId={tripId} places={places} categories={categories} assignments={assignments} selectedDayId={selectedDayId} selectedPlaceId={selectedPlaceId} onPlaceClick={(placeId) => { handlePlaceClick(placeId); setMobileSidebarOpen(null) }} onAddPlace={() => { setEditingPlace(null); setShowPlaceForm(true); setMobileSidebarOpen(null) }} onAssignToDay={handleAssignToDay} onEditPlace={(place) => { setEditingPlace(place); setEditingAssignmentId(null); setShowPlaceForm(true); setMobileSidebarOpen(null) }} onDeletePlace={(placeId) => handleDeletePlace(placeId)} onBulkDeletePlaces={(ids) => setDeletePlaceIds(ids)} onBulkDeleteConfirm={(ids) => confirmDeletePlaces(ids)} days={days} isMobile onCategoryFilterChange={setMapCategoryFilter} onPlacesFilterChange={setMapPlacesFilter} pushUndo={pushUndo} initialScrollTop={mobilePlacesScrollTopRef.current} onScrollTopChange={(top) => { mobilePlacesScrollTopRef.current = top }} />
                     }
                   </div>

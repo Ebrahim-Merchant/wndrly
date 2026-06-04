@@ -9,6 +9,7 @@ import { getApiErrorMessage } from '../types'
 import DemoBanner from '../components/Layout/DemoBanner'
 import CurrencyWidget from '../components/Dashboard/CurrencyWidget'
 import TimezoneWidget from '../components/Dashboard/TimezoneWidget'
+import TripWidgetsPanel from '../components/Dashboard/TripWidgetsPanel'
 import TripFormModal from '../components/Trips/TripFormModal'
 import ConfirmDialog from '../components/shared/ConfirmDialog'
 import CopyTripDialog from '../components/shared/CopyTripDialog'
@@ -205,7 +206,7 @@ function SpotlightCard({ trip, onEdit, onCopy, onDelete, onArchive, onClick, t, 
       }}>
         {trip.cover_image && (
           <>
-            <img src={trip.cover_image} className="w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.06]" alt="" />
+            <img src={trip.cover_image} className="w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.06]" alt="" onError={e => { (e.currentTarget.parentElement as HTMLElement).style.background = tripGradient(trip.id); e.currentTarget.style.display = 'none'; }} />
             <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)' }} />
           </>
         )}
@@ -301,7 +302,7 @@ function MobileTripCard({ trip, onEdit, onCopy, onDelete, onArchive, onClick, t,
       {/* Cover */}
       <div className="relative h-[120px] overflow-hidden" style={{ background: trip.cover_image ? undefined : tripGradient(trip.id) }}>
         {trip.cover_image && (
-          <img src={trip.cover_image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.08]" alt="" />
+          <img src={trip.cover_image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.08]" alt="" onError={e => { (e.currentTarget.parentElement as HTMLElement).style.background = tripGradient(trip.id); e.currentTarget.style.display = 'none'; }} />
         )}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.5) 100%)' }} />
 
@@ -393,7 +394,7 @@ function TripCard({ trip, onEdit, onCopy, onDelete, onArchive, onClick, t, local
       {/* Cover */}
       <div className="relative h-[140px] overflow-hidden" style={{ background: trip.cover_image ? undefined : tripGradient(trip.id) }}>
         {trip.cover_image && (
-          <img src={trip.cover_image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.08]" alt="" />
+          <img src={trip.cover_image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[800ms] ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.08]" alt="" onError={e => { (e.currentTarget.parentElement as HTMLElement).style.background = tripGradient(trip.id); e.currentTarget.style.display = 'none'; }} />
         )}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.55) 100%)' }} />
 
@@ -838,7 +839,7 @@ export default function DashboardPage(): React.ReactElement {
   const rest = spotlight ? trips.filter(t => t.id !== spotlight.id) : trips
 
   return (
-    <div className="wndrly-page-root" style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', ...font }}>
+    <div className="wndrly-page-root" style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)', ...font }}>
       {demoMode && <DemoBanner />}
       <div style={{ flex: 1, overflow: 'auto', overscrollBehavior: 'contain', marginTop: 0 }}>
         <div style={{ maxWidth: 1300, margin: '0 auto', paddingTop: 32, paddingLeft: 20, paddingRight: 20, paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}>
@@ -1158,14 +1159,26 @@ export default function DashboardPage(): React.ReactElement {
           </div>
 
           {/* Widgets sidebar */}
-          {showSidebar && (
-            <div className="hidden lg:flex flex-col gap-4" style={{ position: 'sticky', top: 32, flexShrink: 0, width: 280 }}>
-              <div className="flex items-center gap-2 px-1 mb-1">
-                <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(180deg, #f87060 0%, #ffb4a9 100%)' }} />
-                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>INFO</span>
-              </div>
-              {showCurrency && <LiquidGlass dark={dark} style={{ borderRadius: 16 }}><CurrencyWidget /></LiquidGlass>}
-              {showTimezone && <LiquidGlass dark={dark} style={{ borderRadius: 16 }}><TimezoneWidget /></LiquidGlass>}
+          {(showSidebar || spotlight) && (
+            <div className="hidden lg:flex flex-col gap-4" style={{ position: 'sticky', top: 32, flexShrink: 0, width: 300 }}>
+              {/* Trip widgets for spotlight trip */}
+              {spotlight && (
+                <TripWidgetsPanel tripId={spotlight.id} dark={dark} />
+              )}
+              {/* Divider if both trip widgets and currency/timezone shown */}
+              {spotlight && showSidebar && (
+                <div style={{ height: 1, background: 'var(--border-faint)' }} />
+              )}
+              {showSidebar && (
+                <>
+                  <div className="flex items-center gap-2 px-1">
+                    <div className="w-1 h-4 rounded-full" style={{ background: 'linear-gradient(180deg, #f87060 0%, #ffb4a9 100%)' }} />
+                    <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>INFO</span>
+                  </div>
+                  {showCurrency && <LiquidGlass dark={dark} style={{ borderRadius: 16 }}><CurrencyWidget /></LiquidGlass>}
+                  {showTimezone && <LiquidGlass dark={dark} style={{ borderRadius: 16 }}><TimezoneWidget /></LiquidGlass>}
+                </>
+              )}
             </div>
           )}
           </div>

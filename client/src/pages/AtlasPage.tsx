@@ -768,7 +768,7 @@ export default function AtlasPage(): React.ReactElement {
 
   return (
     <div className="h-screen overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)' }} className="md:!left-60">
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 'env(safe-area-inset-bottom, 0px)' }} className="wndrly-page-root">
         {/* Map */}
         <div ref={mapRef} style={{ position: 'absolute', inset: 0, zIndex: 1, background: dark ? '#1a1a2e' : '#f0f0f0' }} />
 
