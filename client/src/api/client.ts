@@ -235,6 +235,7 @@ export const tripsApi = {
   removeMember: (id: number | string, userId: number) => apiClient.delete(`/trips/${id}/members/${userId}`).then(r => r.data),
   copy: (id: number | string, data?: { title?: string }) => apiClient.post(`/trips/${id}/copy`, data || {}).then(r => r.data),
   bundle: (id: number | string) => apiClient.get(`/trips/${id}/bundle`).then(r => r.data),
+  refreshCover: (id: number | string) => apiClient.post(`/trips/${id}/refresh-cover`).then(r => r.data),
 }
 
 export const daysApi = {

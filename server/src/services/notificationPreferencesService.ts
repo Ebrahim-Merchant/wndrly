@@ -212,7 +212,7 @@ export function setPreferences(
   prefs: Partial<Record<string, Partial<Record<string, boolean>>>>
 ): void {
   const upsert = db.prepare(
-    'INSERT OR REPLACE INTO notification_channel_preferences (user_id, event_type, channel, enabled) VALUES (?, ?, ?, ?)'
+    'INSERT INTO notification_channel_preferences (user_id, event_type, channel, enabled) VALUES (?, ?, ?, ?) ON CONFLICT (user_id, event_type, channel) DO UPDATE SET enabled = EXCLUDED.enabled'
   );
   const del = db.prepare(
     'DELETE FROM notification_channel_preferences WHERE user_id = ? AND event_type = ? AND channel = ?'
@@ -230,7 +230,7 @@ export function setAdminPreferences(
   prefs: Partial<Record<string, Partial<Record<string, boolean>>>>
 ): void {
   const upsert = db.prepare(
-    'INSERT OR REPLACE INTO notification_channel_preferences (user_id, event_type, channel, enabled) VALUES (?, ?, ?, ?)'
+    'INSERT INTO notification_channel_preferences (user_id, event_type, channel, enabled) VALUES (?, ?, ?, ?) ON CONFLICT (user_id, event_type, channel) DO UPDATE SET enabled = EXCLUDED.enabled'
   );
   const del = db.prepare(
     'DELETE FROM notification_channel_preferences WHERE user_id = ? AND event_type = ? AND channel = ?'

@@ -36,6 +36,7 @@ import { listItems as listTodoItems } from '../services/todoService';
 import { listBudgetItems } from '../services/budgetService';
 import { listReservations } from '../services/reservationService';
 import { listFiles } from '../services/fileService';
+import { fetchTripCoverImage, extractDestinationsFromTitle } from '../services/unsplashService';
 
 const router = express.Router();
 
@@ -108,6 +109,17 @@ router.post('/', authenticate, (req: Request, res: Response) => {
   writeAudit({ userId: authReq.user.id, action: 'trip.create', ip: getClientIp(req), details: { tripId, title, reminder_days: reminderDays === 0 ? 'none' : `${reminderDays} days` } });
   if (reminderDays > 0) {
     logInfo(`${authReq.user.email} set ${reminderDays}-day reminder for trip "${title}"`);
+  }
+
+  // Auto-fetch Unsplash cover in background (non-blocking)
+  if (tripId) {
+    const destinations = extractDestinationsFromTitle(title);
+    fetchTripCoverImage(destinations).then((url) => {
+      if (url) {
+        updateCoverImage(String(tripId), url);
+        broadcast(String(tripId), 'trip:updated', { trip: { id: tripId, cover_image: url } }, '');
+      }
+    }).catch(() => { /* silent */ });
   }
 
   res.status(201).json({ trip });
@@ -199,6 +211,33 @@ router.post('/:id/cover', authenticate, demoUploadBlock, uploadCover.single('cov
 });
 
 // ── Copy / duplicate a trip ──────────────────────────────────────────────────
+// ── Refresh cover via Unsplash ───────────────────────────────────────────
+router.post('/:id/refresh-cover', authenticate, (req: Request, res: Response) => {
+  const authReq = req as AuthRequest;
+  const access = canAccessTrip(req.params.id, authReq.user.id);
+  if (!access) return res.status(404).json({ error: 'Trip not found' });
+  const isMember = access.user_id !== authReq.user.id;
+  if (!checkPermission('trip_cover_upload', authReq.user.role, access.user_id, authReq.user.id, isMember))
+    return res.status(403).json({ error: 'No permission to change the cover image' });
+
+  const trip = getTripRaw(req.params.id);
+  if (!trip) return res.status(404).json({ error: 'Trip not found' });
+
+  const destinations = extractDestinationsFromTitle(trip.title);
+
+  fetchTripCoverImage(destinations).then((url) => {
+    if (!url) return res.status(502).json({ error: 'Could not fetch image from Unsplash. Check UNSPLASH_ACCESS_KEY.' });
+    updateCoverImage(req.params.id, url);
+    const updatedTrip = getTrip(req.params.id, authReq.user.id);
+    broadcast(req.params.id, 'trip:updated', { trip: updatedTrip }, req.headers['x-socket-id'] as string);
+    writeAudit({ userId: authReq.user.id, action: 'trip.cover_refresh', ip: getClientIp(req), details: { tripId: Number(req.params.id) } });
+    res.json({ cover_image: url, trip: updatedTrip });
+  }).catch((err) => {
+    console.error('[refresh-cover]', err);
+    res.status(500).json({ error: 'Internal error fetching cover image' });
+  });
+});
+
 router.post('/:id/copy', authenticate, (req: Request, res: Response) => {
   const authReq = req as AuthRequest;
   if (!checkPermission('trip_create', authReq.user.role, null, authReq.user.id, false))

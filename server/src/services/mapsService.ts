@@ -525,7 +525,7 @@ export async function getPlaceDetails(userId: number, placeId: string, lang?: st
 
   try {
     db.prepare(
-      'INSERT OR REPLACE INTO place_details_cache (place_id, lang, expanded, payload_json, fetched_at) VALUES (?, ?, 0, ?, ?)'
+      'INSERT INTO place_details_cache (place_id, lang, expanded, payload_json, fetched_at) VALUES (?, ?, 0, ?, ?) ON CONFLICT (place_id, lang, expanded) DO UPDATE SET payload_json = EXCLUDED.payload_json, fetched_at = EXCLUDED.fetched_at'
     ).run(placeId, langKey, JSON.stringify(place), Date.now());
   } catch (dbErr) {
     console.error('Failed to cache place details:', dbErr);
@@ -590,7 +590,7 @@ export async function getPlaceDetailsExpanded(userId: number, placeId: string, l
 
   try {
     db.prepare(
-      'INSERT OR REPLACE INTO place_details_cache (place_id, lang, expanded, payload_json, fetched_at) VALUES (?, ?, 1, ?, ?)'
+      'INSERT INTO place_details_cache (place_id, lang, expanded, payload_json, fetched_at) VALUES (?, ?, 1, ?, ?) ON CONFLICT (place_id, lang, expanded) DO UPDATE SET payload_json = EXCLUDED.payload_json, fetched_at = EXCLUDED.fetched_at'
     ).run(placeId, langKey, JSON.stringify(place), Date.now());
   } catch (dbErr) {
     console.error('Failed to cache expanded place details:', dbErr);

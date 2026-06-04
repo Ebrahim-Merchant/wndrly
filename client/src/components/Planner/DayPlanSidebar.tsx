@@ -247,6 +247,7 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
     return new Set(days.map(d => d.id))
   })
   useEffect(() => { onExpandedDaysChange?.(expandedDays) }, [expandedDays])
+  const [collapsedCountries, setCollapsedCountries] = useState<Set<string>>(new Set())
   const [editingDayId, setEditingDayId] = useState(null)
   const [editTitle, setEditTitle] = useState('')
   const [isCalculating, setIsCalculating] = useState(false)
@@ -862,176 +863,128 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
   const anyGeoAssignment = Object.values(assignments).flatMap(da => da).find(a => a.place?.lat && a.place?.lng)
   const anyGeoPlace = anyGeoAssignment || (places || []).find(p => p.lat && p.lng)
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif" }}>
-      {/* Toolbar */}
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-faint)', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              onClick={async () => {
-                const flatNotes = Object.entries(dayNotes).flatMap(([dayId, notes]) =>
-                  notes.map(n => ({ ...n, day_id: Number(dayId) }))
-                )
-                try {
-                  await downloadTripPDF({ trip, days, places, assignments, categories, dayNotes: flatNotes, reservations, t, locale })
-                } catch (e) {
-                  console.error('PDF error:', e)
-                  toast.error(t('dayplan.pdfError') + ': ' + (e?.message || String(e)))
-                }
-              }}
-              onMouseEnter={() => setPdfHover(true)}
-              onMouseLeave={() => setPdfHover(false)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '5px 10px', borderRadius: 8, border: 'none',
-                background: 'var(--accent)', color: 'var(--accent-text)', fontSize: 11, fontWeight: 500,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              <FileDown size={13} strokeWidth={2} />
-              {t('dayplan.pdf')}
-            </button>
-            {pdfHover && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 200,
-                background: 'var(--bg-card, white)', color: 'var(--text-primary, #111827)',
-                fontSize: 11, fontWeight: 500, padding: '5px 10px',
-                borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                border: '1px solid var(--border-faint, #e5e7eb)',
-              }}>
-                {t('dayplan.pdfTooltip')}
-              </div>
-            )}
-          </div>
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              onClick={async () => {
-                try {
-                  const res = await fetch(`/api/trips/${tripId}/export.ics`, {
-                    credentials: 'include',
-                  })
-                  if (!res.ok) throw new Error()
-                  const blob = await res.blob()
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = `${trip?.title || 'trip'}.ics`
-                  a.click()
-                  URL.revokeObjectURL(url)
-                } catch { toast.error(t('planner.icsExportFailed')) }
-              }}
-              onMouseEnter={() => setIcsHover(true)}
-              onMouseLeave={() => setIcsHover(false)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                padding: '5px 10px', borderRadius: 8,
-                border: '1px solid var(--border-primary)', background: 'none',
-                color: 'var(--text-muted)', fontSize: 11, fontWeight: 500,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              <FileDown size={13} strokeWidth={2} />
-              ICS
-            </button>
-            {icsHover && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 200,
-                background: 'var(--bg-card, white)', color: 'var(--text-primary, #111827)',
-                fontSize: 11, fontWeight: 500, padding: '5px 10px',
-                borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                border: '1px solid var(--border-faint, #e5e7eb)',
-              }}>
-                {t('dayplan.icsTooltip')}
-              </div>
-            )}
-          </div>
-          {(() => {
-            const allExpanded = days.length > 0 && days.every(d => expandedDays.has(d.id))
-            const label = allExpanded ? t('dayplan.collapseAll') : t('dayplan.expandAll')
-            return (
-              <Tooltip label={label} placement="bottom">
-                <button
-                  onClick={() => {
-                    const next = allExpanded ? new Set() : new Set(days.map(d => d.id))
-                    setExpandedDays(next)
-                    try { sessionStorage.setItem(`day-expanded-${tripId}`, JSON.stringify([...next])) } catch {}
-                  }}
-                  aria-label={label}
-                  aria-pressed={allExpanded}
-                  style={{
-                    position: 'relative', flexShrink: 0,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: 30, height: 30, borderRadius: 8,
-                    border: '1px solid var(--border-primary)', background: 'none',
-                    color: 'var(--text-primary)', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
-                    transition: 'color 0.15s, border-color 0.15s, background 0.15s',
-                    overflow: 'hidden',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-                >
-                  <span style={{
-                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    opacity: allExpanded ? 0 : 1,
-                    transform: allExpanded ? 'translateY(-8px) scale(0.6)' : 'translateY(0) scale(1)',
-                  }}>
-                    <ChevronsUpDown size={14} strokeWidth={2} />
-                  </span>
-                  <span style={{
-                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    opacity: allExpanded ? 1 : 0,
-                    transform: allExpanded ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.6)',
-                  }}>
-                    <ChevronsDownUp size={14} strokeWidth={2} />
-                  </span>
-                </button>
-              </Tooltip>
-            )
-          })()}
-          {onUndo && (
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <button
-                onClick={onUndo}
-                disabled={!canUndo}
-                aria-label={t('undo.button')}
-                onMouseEnter={() => setUndoHover(true)}
-                onMouseLeave={() => setUndoHover(false)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 30, height: 30, borderRadius: 8,
-                  border: '1px solid var(--border-primary)', background: 'none',
-                  color: canUndo ? 'var(--text-primary)' : 'var(--border-primary)',
-                  cursor: canUndo ? 'pointer' : 'default', fontFamily: 'inherit',
-                  transition: 'color 0.15s, border-color 0.15s',
-                }}
-              >
-                <Undo2 size={14} strokeWidth={2} />
-              </button>
-              {undoHover && (
-                <div style={{
-                  position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                  whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 200,
-                  background: 'var(--bg-card, white)', color: 'var(--text-primary, #111827)',
-                  fontSize: 11, fontWeight: 500, padding: '5px 10px',
-                  borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  border: '1px solid var(--border-faint, #e5e7eb)',
-                }}>
-                  {canUndo && lastActionLabel ? t('undo.tooltip', { action: lastActionLabel }) : t('undo.button')}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+  // Country grouping helpers
+  const detectCountryGroup = (day: Day, index: number): string => {
+    // Try to extract from day title keywords
+    const title = (day.title || '').toLowerCase()
+    const knownCountries = [
+      { key: 'korea', label: '🇰🇷 Korea' },
+      { key: 'seoul', label: '🇰🇷 Korea' },
+      { key: 'busan', label: '🇰🇷 Korea' },
+      { key: 'japan', label: '🇯🇵 Japan' },
+      { key: 'tokyo', label: '🇯🇵 Japan' },
+      { key: 'osaka', label: '🇯🇵 Japan' },
+      { key: 'kyoto', label: '🇯🇵 Japan' },
+      { key: 'malaysia', label: '🇲🇾 Malaysia' },
+      { key: 'kuala lumpur', label: '🇲🇾 Malaysia' },
+      { key: 'kl', label: '🇲🇾 Malaysia' },
+      { key: 'penang', label: '🇲🇾 Malaysia' },
+      { key: 'singapore', label: '🇸🇬 Singapore' },
+      { key: 'thailand', label: '🇹🇭 Thailand' },
+      { key: 'bangkok', label: '🇹🇭 Thailand' },
+      { key: 'bali', label: '🇮🇩 Indonesia' },
+      { key: 'indonesia', label: '🇮🇩 Indonesia' },
+      { key: 'vietnam', label: '🇻🇳 Vietnam' },
+      { key: 'hanoi', label: '🇻🇳 Vietnam' },
+      { key: 'ho chi minh', label: '🇻🇳 Vietnam' },
+      { key: 'france', label: '🇫🇷 France' },
+      { key: 'paris', label: '🇫🇷 France' },
+      { key: 'germany', label: '🇩🇪 Germany' },
+      { key: 'italy', label: '🇮🇹 Italy' },
+      { key: 'rome', label: '🇮🇹 Italy' },
+      { key: 'spain', label: '🇪🇸 Spain' },
+      { key: 'barcelona', label: '🇪🇸 Spain' },
+      { key: 'usa', label: '🇺🇸 USA' },
+      { key: 'new york', label: '🇺🇸 USA' },
+    ]
+    for (const c of knownCountries) {
+      if (title.includes(c.key)) return c.label
+    }
+    // Try from places assigned to this day
+    const da = assignments[String(day.id)] || []
+    for (const a of da) {
+      const addr = (a.place?.address || '').toLowerCase()
+      for (const c of knownCountries) {
+        if (addr.includes(c.key)) return c.label
+      }
+    }
+    return 'Other'
+  }
 
-      {/* Tagesliste */}
-      <div className={`scroll-container${draggingId ? '' : ' trek-stagger'}`} style={{ flex: 1, overflowY: 'auto', minHeight: 0 }} ref={scrollContainerRef} onScroll={(e) => onScrollTopChange?.((e.currentTarget as HTMLElement).scrollTop)}>
-        {days.map((day, index) => {
+  // Build grouped days list with condensed unplanned runs
+  const groupedDaysList = useMemo(() => {
+    if (days.length === 0) return []
+    const groups: { country: string; items: ({ type: 'day'; day: Day; index: number } | { type: 'unplanned-group'; startDay: number; endDay: number; count: number; firstDayId: number })[]; startIndex: number; endIndex: number }[] = []
+    let currentCountry = detectCountryGroup(days[0], 0)
+    let currentGroup: typeof groups[0] = { country: currentCountry, items: [], startIndex: 0, endIndex: 0 }
+    groups.push(currentGroup)
+
+    days.forEach((day, index) => {
+      const country = detectCountryGroup(day, index)
+      if (country !== currentGroup.country) {
+        currentGroup.endIndex = index - 1
+        currentGroup = { country, items: [], startIndex: index, endIndex: index }
+        currentCountry = country
+        groups.push(currentGroup)
+      } else {
+        currentGroup.endIndex = index
+      }
+      currentGroup.items.push({ type: 'day', day, index })
+    })
+
+    // Condense consecutive unplanned days (3+) within each group
+    return groups.map(group => {
+      const condensed: typeof group['items'] = []
+      let unplanned: { type: 'day'; day: Day; index: number }[] = []
+
+      const flushUnplanned = () => {
+        if (unplanned.length >= 3) {
+          condensed.push({
+            type: 'unplanned-group',
+            startDay: unplanned[0].index + 1,
+            endDay: unplanned[unplanned.length - 1].index + 1,
+            count: unplanned.length,
+            firstDayId: unplanned[0].day.id,
+          })
+        } else {
+          condensed.push(...unplanned)
+        }
+        unplanned = []
+      }
+
+      for (const item of group.items) {
+        if (item.type === 'day') {
+          const da = assignments[String(item.day.id)] || []
+          const merged = mergedItemsMap[item.day.id] || []
+          const hasContent = merged.length > 0
+          if (!hasContent) {
+            unplanned.push(item)
+          } else {
+            flushUnplanned()
+            condensed.push(item)
+          }
+        } else {
+          flushUnplanned()
+          condensed.push(item)
+        }
+      }
+      flushUnplanned()
+
+      return { ...group, items: condensed }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days, assignments, mergedItemsMap])
+
+  // Determine if all days in trip have no country detection (single-country/unknown)
+  const hasMultipleCountries = useMemo(() => {
+    if (days.length === 0) return false
+    const countries = new Set(days.map((d, i) => detectCountryGroup(d, i)))
+    return countries.size > 1
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days, assignments])
+
+
+    const renderDayRow = (day: Day, index: number) => {
           const isSelected = selectedDayId === day.id
           const isExpanded = expandedDays.has(day.id)
           const da = getDayAssignments(day.id)
@@ -1959,7 +1912,290 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
               )}
             </div>
           )
-        })}
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative', fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif" }}>
+      {/* Toolbar */}
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-faint)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              onClick={async () => {
+                const flatNotes = Object.entries(dayNotes).flatMap(([dayId, notes]) =>
+                  notes.map(n => ({ ...n, day_id: Number(dayId) }))
+                )
+                try {
+                  await downloadTripPDF({ trip, days, places, assignments, categories, dayNotes: flatNotes, reservations, t, locale })
+                } catch (e) {
+                  console.error('PDF error:', e)
+                  toast.error(t('dayplan.pdfError') + ': ' + (e?.message || String(e)))
+                }
+              }}
+              onMouseEnter={() => setPdfHover(true)}
+              onMouseLeave={() => setPdfHover(false)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '5px 10px', borderRadius: 8, border: 'none',
+                background: 'var(--accent)', color: 'var(--accent-text)', fontSize: 11, fontWeight: 500,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              <FileDown size={13} strokeWidth={2} />
+              {t('dayplan.pdf')}
+            </button>
+            {pdfHover && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 200,
+                background: 'var(--bg-card, white)', color: 'var(--text-primary, #111827)',
+                fontSize: 11, fontWeight: 500, padding: '5px 10px',
+                borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                border: '1px solid var(--border-faint, #e5e7eb)',
+              }}>
+                {t('dayplan.pdfTooltip')}
+              </div>
+            )}
+          </div>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch(`/api/trips/${tripId}/export.ics`, {
+                    credentials: 'include',
+                  })
+                  if (!res.ok) throw new Error()
+                  const blob = await res.blob()
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `${trip?.title || 'trip'}.ics`
+                  a.click()
+                  URL.revokeObjectURL(url)
+                } catch { toast.error(t('planner.icsExportFailed')) }
+              }}
+              onMouseEnter={() => setIcsHover(true)}
+              onMouseLeave={() => setIcsHover(false)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '5px 10px', borderRadius: 8,
+                border: '1px solid var(--border-primary)', background: 'none',
+                color: 'var(--text-muted)', fontSize: 11, fontWeight: 500,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              <FileDown size={13} strokeWidth={2} />
+              ICS
+            </button>
+            {icsHover && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 200,
+                background: 'var(--bg-card, white)', color: 'var(--text-primary, #111827)',
+                fontSize: 11, fontWeight: 500, padding: '5px 10px',
+                borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                border: '1px solid var(--border-faint, #e5e7eb)',
+              }}>
+                {t('dayplan.icsTooltip')}
+              </div>
+            )}
+          </div>
+          {(() => {
+            const allExpanded = days.length > 0 && days.every(d => expandedDays.has(d.id))
+            const label = allExpanded ? t('dayplan.collapseAll') : t('dayplan.expandAll')
+            return (
+              <Tooltip label={label} placement="bottom">
+                <button
+                  onClick={() => {
+                    const next = allExpanded ? new Set() : new Set(days.map(d => d.id))
+                    setExpandedDays(next)
+                    try { sessionStorage.setItem(`day-expanded-${tripId}`, JSON.stringify([...next])) } catch {}
+                  }}
+                  aria-label={label}
+                  aria-pressed={allExpanded}
+                  style={{
+                    position: 'relative', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 30, height: 30, borderRadius: 8,
+                    border: '1px solid var(--border-primary)', background: 'none',
+                    color: 'var(--text-primary)', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+                    transition: 'color 0.15s, border-color 0.15s, background 0.15s',
+                    overflow: 'hidden',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <span style={{
+                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    opacity: allExpanded ? 0 : 1,
+                    transform: allExpanded ? 'translateY(-8px) scale(0.6)' : 'translateY(0) scale(1)',
+                  }}>
+                    <ChevronsUpDown size={14} strokeWidth={2} />
+                  </span>
+                  <span style={{
+                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    opacity: allExpanded ? 1 : 0,
+                    transform: allExpanded ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.6)',
+                  }}>
+                    <ChevronsDownUp size={14} strokeWidth={2} />
+                  </span>
+                </button>
+              </Tooltip>
+            )
+          })()}
+          {onUndo && (
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button
+                onClick={onUndo}
+                disabled={!canUndo}
+                aria-label={t('undo.button')}
+                onMouseEnter={() => setUndoHover(true)}
+                onMouseLeave={() => setUndoHover(false)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 30, height: 30, borderRadius: 8,
+                  border: '1px solid var(--border-primary)', background: 'none',
+                  color: canUndo ? 'var(--text-primary)' : 'var(--border-primary)',
+                  cursor: canUndo ? 'pointer' : 'default', fontFamily: 'inherit',
+                  transition: 'color 0.15s, border-color 0.15s',
+                }}
+              >
+                <Undo2 size={14} strokeWidth={2} />
+              </button>
+              {undoHover && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                  whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 200,
+                  background: 'var(--bg-card, white)', color: 'var(--text-primary, #111827)',
+                  fontSize: 11, fontWeight: 500, padding: '5px 10px',
+                  borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  border: '1px solid var(--border-faint, #e5e7eb)',
+                }}>
+                  {canUndo && lastActionLabel ? t('undo.tooltip', { action: lastActionLabel }) : t('undo.button')}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Tagesliste */}
+      <div className={`scroll-container${draggingId ? '' : ' trek-stagger'}`} style={{ flex: 1, overflowY: 'auto', minHeight: 0 }} ref={scrollContainerRef} onScroll={(e) => onScrollTopChange?.((e.currentTarget as HTMLElement).scrollTop)}>
+        {hasMultipleCountries ? (
+          groupedDaysList.map((group, groupIdx) => {
+            const isGroupCollapsed = collapsedCountries.has(group.country)
+            const groupDays = days.slice(group.startIndex, group.endIndex + 1)
+            const groupDayNums = `Day ${group.startIndex + 1}${group.endIndex > group.startIndex ? `–${group.endIndex + 1}` : ''}`
+            const groupDayCount = group.endIndex - group.startIndex + 1
+            // Find date range for group
+            const firstDate = groupDays[0]?.date
+            const lastDate = groupDays[groupDays.length - 1]?.date
+            const dateRange = firstDate && lastDate && firstDate !== lastDate
+              ? `${new Date(firstDate).toLocaleDateString(locale, { month: 'short', day: 'numeric' })} – ${new Date(lastDate).toLocaleDateString(locale, { month: 'short', day: 'numeric' })}`
+              : firstDate ? new Date(firstDate).toLocaleDateString(locale, { month: 'short', day: 'numeric' }) : ''
+            return (
+              <div key={group.country + groupIdx}>
+                {/* Country Section Header */}
+                <div
+                  onClick={() => setCollapsedCountries(prev => {
+                    const next = new Set(prev)
+                    next.has(group.country + groupIdx) ? next.delete(group.country + groupIdx) : next.add(group.country + groupIdx)
+                    return next
+                  })}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 14px 10px 12px',
+                    borderBottom: '1px solid var(--border-faint)',
+                    borderTop: groupIdx > 0 ? '2px solid var(--border-primary)' : undefined,
+                    cursor: 'pointer',
+                    background: 'var(--bg-secondary)',
+                    userSelect: 'none',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-secondary)' }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.01em' }}>
+                      {group.country}
+                    </span>
+                    <span style={{ fontSize: 10, color: 'var(--text-faint)', fontWeight: 500 }}>
+                      {dateRange}{dateRange ? ' · ' : ''}{groupDayCount} {groupDayCount === 1 ? 'day' : 'days'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20,
+                      background: 'var(--bg-hover)', color: 'var(--text-muted)',
+                      textTransform: 'uppercase', letterSpacing: '0.05em',
+                    }}>
+                      {groupDayNums}
+                    </span>
+                    {isGroupCollapsed
+                      ? <ChevronRight size={14} strokeWidth={2} color="var(--text-faint)" />
+                      : <ChevronDown size={14} strokeWidth={2} color="var(--text-faint)" />
+                    }
+                  </div>
+                </div>
+                {/* Days within group */}
+                {!isGroupCollapsed && group.items.map(item => {
+                  // Condensed unplanned group
+                  if (item.type === 'unplanned-group') {
+                    return (
+                      <div
+                        key={`unplanned-${item.firstDayId}`}
+                        onClick={() => onSelectDay(item.firstDayId)}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '9px 14px 9px 16px',
+                          borderBottom: '1px solid var(--border-faint)',
+                          cursor: 'pointer',
+                          color: 'var(--text-faint)',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-tertiary)'; (e.currentTarget.querySelector('.unplanned-add') as HTMLElement)?.style && ((e.currentTarget.querySelector('.unplanned-add') as HTMLElement).style.opacity = '1') }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; (e.currentTarget.querySelector('.unplanned-add') as HTMLElement)?.style && ((e.currentTarget.querySelector('.unplanned-add') as HTMLElement).style.opacity = '0') }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {/* Timeline dot */}
+                          <div style={{
+                            width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                            background: 'var(--border-primary)',
+                            border: '1px dashed var(--text-faint)',
+                          }} />
+                          <span style={{ fontSize: 12, fontStyle: 'italic' }}>
+                            Days {item.startDay}–{item.endDay} · {item.count} unplanned days
+                          </span>
+                        </div>
+                        {canEditDays && (
+                          <button
+                            className="unplanned-add"
+                            onClick={e => { e.stopPropagation(); onSelectDay(item.firstDayId) }}
+                            style={{
+                              opacity: 0, transition: 'opacity 0.15s',
+                              display: 'flex', alignItems: 'center', gap: 4,
+                              padding: '3px 8px', borderRadius: 6,
+                              border: '1px solid var(--border-primary)', background: 'none',
+                              color: 'var(--text-muted)', fontSize: 10, fontWeight: 600,
+                              cursor: 'pointer', fontFamily: 'inherit',
+                            }}
+                          >
+                            <Plus size={10} strokeWidth={2} /> Plan
+                          </button>
+                        )}
+                      </div>
+                    )
+                  }
+                  // Normal day
+                  const { day, index } = item
+                  return renderDayRow(day, index)
+                })}
+              </div>
+            )
+          })
+        ) : (
+          days.map((day, index) => renderDayRow(day, index))
+        )}
       </div>
 
       {/* Notiz-Popup-Modal — über Portal gerendert, um den backdropFilter-Stapelkontext zu umgehen */}

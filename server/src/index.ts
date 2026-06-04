@@ -71,12 +71,17 @@ const onListen = () => {
     sLogWarn('SECURITY WARNING: DEMO_MODE is enabled in production!');
   }
   scheduler.start();
-  scheduler.startTripReminders();
-  scheduler.startTodoReminders();
-  scheduler.startVersionCheck();
-  scheduler.startDemoReset();
-  scheduler.startIdempotencyCleanup();
-  scheduler.startTrekPhotoCacheCleanup();
+  // Delay scheduler startup to allow PG pool SSL handshake to complete
+  // (deasync.loopWhile blocks the event loop preventing async connection setup)
+  const SCHEDULER_DELAY_MS = process.env.DATABASE_URL ? 5000 : 0;
+  setTimeout(() => {
+    scheduler.startTripReminders();
+    scheduler.startTodoReminders();
+    scheduler.startVersionCheck();
+    scheduler.startDemoReset();
+    scheduler.startIdempotencyCleanup();
+    scheduler.startTrekPhotoCacheCleanup();
+  }, SCHEDULER_DELAY_MS);
   const { startTokenCleanup } = require('./services/ephemeralTokens');
   startTokenCleanup();
   import('./websocket').then(({ setupWebSocket }) => {

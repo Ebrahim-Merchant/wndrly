@@ -285,7 +285,7 @@ export function saveConsent(clientId: string, userId: number, scopes: string[], 
   const existing = getConsent(clientId, userId) ?? [];
   const merged = Array.from(new Set([...existing, ...scopes]));
   db.prepare(
-    'INSERT OR REPLACE INTO oauth_consents (client_id, user_id, scopes, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)'
+    'INSERT INTO oauth_consents (client_id, user_id, scopes, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP) ON CONFLICT (client_id, user_id) DO UPDATE SET scopes = EXCLUDED.scopes, updated_at = CURRENT_TIMESTAMP'
   ).run(clientId, userId, JSON.stringify(merged));
   writeAudit({ userId, action: 'oauth.consent.grant', details: { client_id: clientId, scopes: merged }, ip });
 }

@@ -10,8 +10,11 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 SUPABASE_DB_PASSWORD=WndrlySupa2024!SecurePass
 
 # Connection strings for DATABASE_URL env var in docker-compose
-# Session pooler (for persistent connections - better for backend):
-DATABASE_URL=postgresql://postgres.xfvayfokefudhxtlcprj:WndrlySupa2024!SecurePass@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+# Transaction pooler (WORKING - aws-1 host, port 5432 SESSION mode):
+DATABASE_URL=postgresql://postgres.xfvayfokefudhxtlcprj:WndrlySupa2024!SecurePass@aws-1-us-east-1.pooler.supabase.com:5432/postgres
+# NOTE: Do NOT include ?sslmode=require - let pg Pool handle SSL with rejectUnauthorized: false
+# The correct pooler host is aws-1, NOT aws-0
+# Old password WndrlySupa2025Reset! in ~/.openclaw/secrets/.env.wndrly-supabase is WRONG, actual password is above
 
 # Transaction pooler (for serverless/short-lived):
 # DATABASE_URL=postgresql://postgres.xfvayfokefudhxtlcprj:WndrlySupa2024!SecurePass@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require

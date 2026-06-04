@@ -1,4 +1,4 @@
-import React, { useEffect, ReactNode } from 'react'
+import React, { useEffect, useState, ReactNode } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import { useSettingsStore } from './store/settingsStore'
@@ -20,7 +20,7 @@ import SharedTripPage from './pages/SharedTripPage'
 import InAppNotificationsPage from './pages/InAppNotificationsPage.tsx'
 import OAuthAuthorizePage from './pages/OAuthAuthorizePage'
 import { ToastContainer } from './components/shared/Toast'
-import Sidebar from './components/Layout/Sidebar'
+import Sidebar, { subscribeSidebarCollapsed } from './components/Layout/Sidebar'
 import BottomNav from './components/Layout/BottomNav'
 import { TranslationProvider, useTranslation } from './i18n'
 import { authApi } from './api/client'
@@ -46,6 +46,20 @@ function ProtectedRoute({ children, adminRequired = false, addonId }: ProtectedR
   const addonStore = useAddonStore()
   const { t } = useTranslation()
   const location = useLocation()
+
+  // Sidebar collapse width — hooks must be before any early returns
+  const [sidebarW, setSidebarW] = useState(() => {
+    try { return localStorage.getItem('wndrly_nav_collapsed') === 'true' ? 64 : 240 } catch { return 240 }
+  })
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
+  useEffect(() => subscribeSidebarCollapsed(v => setSidebarW(v ? 64 : 240)), [])
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    setIsMobile(mq.matches)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   if (isLoading) {
     return (
@@ -84,7 +98,10 @@ function ProtectedRoute({ children, adminRequired = false, addonId }: ProtectedR
     <div className="flex h-screen">
       <Sidebar />
       {/* Mobile: full-width; Desktop: offset by sidebar width */}
-      <div className="flex flex-col flex-1 min-w-0 md:ml-60">
+      <div
+        className="flex flex-col flex-1 min-w-0 md:transition-[margin-left] md:duration-300"
+        style={{ marginLeft: isMobile ? '0px' : `${sidebarW}px`, transition: 'margin-left 300ms cubic-bezier(0.23,1,0.32,1)' }}
+      >
         <div className="flex-1 overflow-y-auto">{children}</div>
         <BottomNav />
       </div>

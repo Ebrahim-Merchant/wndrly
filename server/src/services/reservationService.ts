@@ -245,7 +245,7 @@ export function createReservation(tripId: string | number, data: CreateReservati
 export function updatePositions(tripId: string | number, positions: { id: number; day_plan_position: number }[], dayId?: number | string) {
   if (dayId) {
     // Per-day positions for multi-day reservations
-    const stmt = db.prepare('INSERT OR REPLACE INTO reservation_day_positions (reservation_id, day_id, position) VALUES (?, ?, ?)');
+    const stmt = db.prepare('INSERT INTO reservation_day_positions (reservation_id, day_id, position) VALUES (?, ?, ?) ON CONFLICT (reservation_id, day_id) DO UPDATE SET position = EXCLUDED.position');
     const updateMany = db.transaction((items: { id: number; day_plan_position: number }[]) => {
       for (const item of items) {
         stmt.run(item.id, dayId, item.day_plan_position);

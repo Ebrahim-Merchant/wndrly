@@ -827,7 +827,7 @@ export function addContributor(journeyId: number, userId: number, targetUserId: 
   if (targetUserId === userId) return false;
   try {
     db.prepare(
-      'INSERT OR REPLACE INTO journey_contributors (journey_id, user_id, role, added_at) VALUES (?, ?, ?, ?)'
+      'INSERT INTO journey_contributors (journey_id, user_id, role, added_at) VALUES (?, ?, ?, ?) ON CONFLICT (journey_id, user_id) DO UPDATE SET role = EXCLUDED.role, added_at = EXCLUDED.added_at'
     ).run(journeyId, targetUserId, role, ts());
     broadcastJourneyEvent(journeyId, 'journey:contributor:changed', { targetUserId, role });
     return true;
