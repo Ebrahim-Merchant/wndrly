@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { Clock, Navigation2, Car, Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Clock, Navigation2, Car, Search, X, ChevronLeft, ChevronRight, GripVertical, Zap, Check, Pencil, Plane, Train, Bike, Ship, Bus, PersonStanding } from 'lucide-react'
 import PlaceAvatar from '../shared/PlaceAvatar'
 import { getCached, fetchPhoto, onPhotoLoaded } from '../../services/photoService'
 import { useAuthStore } from '../../store/authStore'
@@ -7,6 +7,26 @@ import { useSettingsStore } from '../../store/settingsStore'
 import { formatTime, formatDate } from '../../utils/formatters'
 import { parseTimeToMinutes } from '../../utils/dayMerge'
 import type { Day, Place, Assignment, AssignmentsMap, Category } from '../../types'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { assignmentsApi, weatherApi, placesApi } from '../../api/client'
 
 interface TimelineViewProps {
   tripId: string | undefined
@@ -17,6 +37,45 @@ interface TimelineViewProps {
   selectedDayId: number | null
   onSelectDay: (dayId: number, skipFit?: boolean) => void
   onPlaceClick: (placeId: number, assignmentId?: number) => void
+  onReorderDay?: (dayId: number, orderedIds: number[]) => void
+}
+
+// ─── Transport Mode Config ───────────────────────────────────────────────────
+const TRANSPORT_MODES = [
+  { id: 'car',    label: 'Car',       icon: '🚗', speed: 40  },
+  { id: 'walk',   label: 'Walk',      icon: '🚶', speed: 5   },
+  { id: 'bike',   label: 'Bike',      icon: '🚲', speed: 15  },
+  { id: 'train',  label: 'Train',     icon: '🚆', speed: 80  },
+  { id: 'bus',    label: 'Bus',       icon: '🚌', speed: 25  },
+  { id: 'plane',  label: 'Plane',     icon: '✈️', speed: 600 },
+  { id: 'boat',   label: 'Boat/Ferry',icon: '⛴️', speed: 30  },
+] as const
+type TransportMode = typeof TRANSPORT_MODES[number]['id']
+
+function getTransportSpeed(mode: string | null): number {
+  const m = TRANSPORT_MODES.find(t => t.id === mode)
+  return m ? m.speed : 40
+}
+
+// ─── Weather Types ───────────────────────────────────────────────────────────
+interface DayWeather {
+  temp: number
+  description: string
+  main: string
+  emoji: string
+  wind_max?: number
+  precip?: number
+}
+
+function weatherMainToEmoji(main: string): string {
+  const m = main?.toLowerCase() || ''
+  if (m.includes('clear'))       return '☀️'
+  if (m.includes('cloud'))       return '⛅'
+  if (m.includes('rain') || m.includes('drizzle')) return '🌧️'
+  if (m.includes('snow'))        return '❄️'
+  if (m.includes('thunder') || m.includes('storm')) return '⚡'
+  if (m.includes('fog') || m.includes('mist'))      return '🌫️'
+  return '🌤️'
 }
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -45,9 +104,11 @@ interface ActivityCardProps {
   onClick: () => void
   isSelected: boolean
   highlight?: boolean
+  isDragging?: boolean
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>
 }
 
-function ActivityCard({ assignment, startTime, endTime, categories, onClick, isSelected, highlight }: ActivityCardProps) {
+function ActivityCard({ assignment, startTime, endTime, categories, onClick, isSelected, highlight, isDragging, dragHandleProps }: ActivityCardProps) {
   const place = assignment.place
   const placesPhotosEnabled = useAuthStore(s => s.placesPhotosEnabled)
   const [photoSrc, setPhotoSrc] = useState<string | null>(place.image_url || null)
@@ -81,7 +142,9 @@ function ActivityCard({ assignment, startTime, endTime, categories, onClick, isS
         background: highlight ? 'rgba(255, 243, 205, 0.8)' : 'var(--bg-card)',
         borderRadius: 16,
         padding: 14,
-        boxShadow: isSelected
+        boxShadow: isDragging
+          ? '0 12px 40px rgba(0,0,0,0.25)'
+          : isSelected
           ? '0 0 0 2px var(--accent), 0 4px 16px rgba(0,0,0,0.12)'
           : highlight
           ? '0 0 0 2px #f59e0b, 0 4px 16px rgba(245,158,11,0.2)'
@@ -89,12 +152,40 @@ function ActivityCard({ assignment, startTime, endTime, categories, onClick, isS
         display: 'flex',
         gap: 12,
         cursor: 'pointer',
-        transition: 'box-shadow 0.15s, transform 0.15s, background 0.3s',
+        transition: isDragging ? 'none' : 'box-shadow 0.15s, transform 0.15s, background 0.3s',
         border: '1px solid var(--border-faint)',
+        opacity: isDragging ? 0.5 : 1,
+        position: 'relative',
       }}
       onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = isSelected ? '0 0 0 2px var(--accent), 0 6px 20px rgba(0,0,0,0.15)' : '0 4px 16px rgba(0,0,0,0.12)' }}
       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = isSelected ? '0 0 0 2px var(--accent), 0 4px 16px rgba(0,0,0,0.12)' : highlight ? '0 0 0 2px #f59e0b, 0 4px 16px rgba(245,158,11,0.2)' : '0 2px 8px rgba(0,0,0,0.07)' }}
     >
+      {/* Drag Handle */}
+      {dragHandleProps && (
+        <div
+          {...dragHandleProps}
+          onClick={e => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            padding: '4px 3px',
+            cursor: 'grab',
+            color: 'var(--text-faint)',
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2,
+            opacity: 0.5,
+            transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.5'; (e.currentTarget as HTMLElement).style.color = 'var(--text-faint)' }}
+        >
+          <GripVertical size={16} />
+        </div>
+      )}
       {/* Image */}
       <div style={{ width: 100, height: 100, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: 'var(--bg-tertiary)', position: 'relative' }}>
         {photoSrc ? (
@@ -168,12 +259,26 @@ function ActivityCard({ assignment, startTime, endTime, categories, onClick, isS
 interface TransitGapProps {
   fromPlace: Place
   toPlace: Place
+  transportMode?: string | null
+  onEditTransport?: (mode: string) => void
 }
 
-function TransitGap({ fromPlace, toPlace }: TransitGapProps) {
+function TransitGap({ fromPlace, toPlace, transportMode, onEditTransport }: TransitGapProps) {
+  const [showEditor, setShowEditor] = useState(false)
+  const [hovering, setHovering] = useState(false)
+  const currentMode = transportMode || 'car'
+  const speed = getTransportSpeed(currentMode)
+
   const distance = (fromPlace.lat && fromPlace.lng && toPlace.lat && toPlace.lng)
     ? haversineDistance(fromPlace.lat, fromPlace.lng, toPlace.lat, toPlace.lng)
     : null
+
+  const travelMins = distance ? Math.max(1, Math.round((distance / speed) * 60)) : null
+  const distanceText = distance
+    ? (distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`)
+    : null
+
+  const modeInfo = TRANSPORT_MODES.find(t => t.id === currentMode) || TRANSPORT_MODES[0]
 
   if (!distance) return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', marginLeft: 8, color: 'var(--text-faint)', fontSize: 12 }}>
@@ -181,30 +286,82 @@ function TransitGap({ fromPlace, toPlace }: TransitGapProps) {
     </div>
   )
 
-  const walkingMins = Math.round((distance / 5) * 60)
-  const drivingMins = Math.round((distance / 40) * 60)
-  const distanceText = distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
-
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 6px 8px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-        <div style={{ width: 2, height: 10, background: 'var(--border-primary)', borderRadius: 1 }} />
-        <div style={{ width: 2, height: 10, background: 'var(--border-faint)', borderRadius: 1 }} />
-        <div style={{ width: 2, height: 10, background: 'var(--border-primary)', borderRadius: 1 }} />
+    <div style={{ position: 'relative' }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0 6px 8px', cursor: onEditTransport ? 'pointer' : 'default' }}
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => { setHovering(false) }}
+        onClick={() => onEditTransport && setShowEditor(v => !v)}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <div style={{ width: 2, height: 10, background: 'var(--border-primary)', borderRadius: 1 }} />
+          <div style={{ width: 2, height: 10, background: 'var(--border-faint)', borderRadius: 1 }} />
+          <div style={{ width: 2, height: 10, background: 'var(--border-primary)', borderRadius: 1 }} />
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: hovering && onEditTransport ? 'rgba(99,102,241,0.12)' : 'var(--bg-tertiary)',
+            border: hovering && onEditTransport ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent',
+            padding: '4px 10px', borderRadius: 20, fontSize: 11, color: hovering && onEditTransport ? '#6366f1' : 'var(--text-muted)', fontWeight: 500,
+            transition: 'all 0.15s',
+          }}>
+            {modeInfo.icon} {travelMins}m by {modeInfo.label.toLowerCase()}
+            {onEditTransport && hovering && <Pencil size={9} style={{ marginLeft: 2 }} />}
+          </span>
+          {distanceText && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-tertiary)', padding: '4px 10px', borderRadius: 20, fontSize: 11, color: 'var(--text-faint)', fontWeight: 400 }}>
+              <Navigation2 size={10} />
+              {distanceText}
+            </span>
+          )}
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-tertiary)', padding: '4px 10px', borderRadius: 20, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
-          <Car size={11} />
-          {drivingMins}m drive
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-tertiary)', padding: '4px 10px', borderRadius: 20, fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
-          🚶 {walkingMins}m walk
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--bg-tertiary)', padding: '4px 10px', borderRadius: 20, fontSize: 11, color: 'var(--text-faint)', fontWeight: 400 }}>
-          <Navigation2 size={10} />
-          {distanceText}
-        </span>
-      </div>
+
+      {/* Transport Mode Editor Popup */}
+      {showEditor && onEditTransport && (
+        <div style={{
+          position: 'absolute',
+          left: 30,
+          top: '100%',
+          zIndex: 50,
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-faint)',
+          borderRadius: 12,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          padding: 10,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 6,
+          maxWidth: 240,
+        }}>
+          <div style={{ width: '100%', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Transport mode</div>
+          {TRANSPORT_MODES.map(mode => (
+            <button
+              key={mode.id}
+              onClick={e => { e.stopPropagation(); onEditTransport(mode.id); setShowEditor(false) }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                cursor: 'pointer',
+                border: currentMode === mode.id ? '2px solid var(--accent)' : '1px solid var(--border-faint)',
+                background: currentMode === mode.id ? 'rgba(99,102,241,0.12)' : 'var(--bg-tertiary)',
+                color: currentMode === mode.id ? 'var(--accent)' : 'var(--text-muted)',
+                transition: 'all 0.12s',
+              }}
+            >
+              {mode.icon} {mode.label}
+            </button>
+          ))}
+          <button
+            onClick={e => { e.stopPropagation(); setShowEditor(false) }}
+            style={{ width: '100%', marginTop: 4, padding: '4px 10px', borderRadius: 8, border: 'none', background: 'var(--bg-tertiary)', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -220,6 +377,60 @@ interface SearchResult {
   time?: string | null
 }
 
+// ─── SortableActivityItem: wraps ActivityCard with DnD sortable ────────────────
+interface SortableActivityItemProps {
+  assignment: Assignment
+  startTime: string | null
+  endTime: string | null
+  categories: Category[]
+  onClick: () => void
+  isSelected: boolean
+  highlight: boolean
+  activeId: number | null
+}
+function SortableActivityItem({ assignment, startTime, endTime, categories, onClick, isSelected, highlight, activeId }: SortableActivityItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: assignment.id })
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+  return (
+    <div ref={setNodeRef} style={style}>
+      <ActivityCard
+        assignment={assignment}
+        startTime={startTime}
+        endTime={endTime}
+        categories={categories}
+        onClick={onClick}
+        isSelected={isSelected}
+        highlight={highlight}
+        isDragging={isDragging}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
+    </div>
+  )
+}
+
+// ─── WeatherBadge ───────────────────────────────────────────────────────────────
+function WeatherBadge({ weather }: { weather: DayWeather | null | undefined }) {
+  if (!weather) return null
+  return (
+    <span
+      title={`${weather.description}${weather.wind_max ? `, wind ${weather.wind_max}km/h` : ''}`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4,
+        background: 'rgba(59,130,246,0.1)', padding: '3px 9px', borderRadius: 20,
+        fontSize: 11, fontWeight: 600, color: '#3b82f6',
+        cursor: 'default',
+        flexShrink: 0,
+      }}
+    >
+      <span style={{ fontSize: 14 }}>{weather.emoji}</span>
+      {Math.round(weather.temp)}°
+    </span>
+  )
+}
+
 export default function TimelineView({
   tripId,
   days,
@@ -229,6 +440,7 @@ export default function TimelineView({
   selectedDayId,
   onSelectDay,
   onPlaceClick,
+  onReorderDay,
 }: TimelineViewProps) {
   const { settings } = useSettingsStore()
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null)
@@ -238,9 +450,28 @@ export default function TimelineView({
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
   const [highlightedAssignmentId, setHighlightedAssignmentId] = useState<number | null>(null)
+  // DnD state
+  const [activeAssignmentId, setActiveAssignmentId] = useState<number | null>(null)
+  const [localOrders, setLocalOrders] = useState<Record<number, Assignment[]>>({})
+  // Weather cache per day
+  const [dayWeather, setDayWeather] = useState<Record<number, DayWeather | null>>({})
+  // Transport modes: stored as { 'dayId-fromAssId': mode }
+  const [transportModes, setTransportModes] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('wndrly_transport_modes') || '{}') } catch { return {} }
+  })
+  // Optimize route state per day
+  const [optimizing, setOptimizing] = useState<Record<number, boolean>>({})
+  const [optimizeConfirm, setOptimizeConfirm] = useState<Record<number, boolean>>({})
+
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
   const observerRef = useRef<IntersectionObserver | null>(null)
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   const locale = settings.language || 'en'
   const timeFormat = settings.time_format || '12h'
@@ -260,9 +491,74 @@ export default function TimelineView({
     if (selectedDayId !== null) setActiveDayId(selectedDayId)
   }, [selectedDayId])
 
-  // All days sorted assignments
+  // Sync localOrders from assignments prop (unless user is actively dragging)
+  useEffect(() => {
+    if (activeAssignmentId !== null) return
+    const newOrders: Record<number, Assignment[]> = {}
+    days.forEach(day => {
+      const sorted = [...(assignments[String(day.id)] || [])].sort((a, b) => {
+        const aTime = parseTimeToMinutes(a.place?.place_time)
+        const bTime = parseTimeToMinutes(b.place?.place_time)
+        if (aTime !== null && bTime !== null) return aTime - bTime
+        if (aTime !== null) return -1
+        if (bTime !== null) return 1
+        return a.order_index - b.order_index
+      })
+      newOrders[day.id] = sorted
+    })
+    setLocalOrders(newOrders)
+  }, [days, assignments, activeAssignmentId])
+
+  // Persist transport modes
+  useEffect(() => {
+    localStorage.setItem('wndrly_transport_modes', JSON.stringify(transportModes))
+  }, [transportModes])
+
+  // Fetch weather for days that have a date + at least one place with coordinates
+  useEffect(() => {
+    days.forEach(day => {
+      if (!day.date) return
+      if (dayWeather[day.id] !== undefined) return  // already loaded or null
+      const dayAssigns = assignments[String(day.id)] || []
+      const firstWithCoords = dayAssigns.find(a => a.place?.lat && a.place?.lng)
+      if (!firstWithCoords?.place) return
+      const { lat, lng } = firstWithCoords.place
+      if (!lat || !lng) return
+      // Check if date is within 5-day forecast window
+      const dayDate = new Date(day.date)
+      const now = new Date()
+      const diffDays = Math.floor((dayDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      if (diffDays < -1 || diffDays > 14) {
+        setDayWeather(prev => ({ ...prev, [day.id]: null }))
+        return
+      }
+      weatherApi.get(lat, lng, day.date)
+        .then((data: Record<string, unknown>) => {
+          if (data?.temp !== undefined) {
+            const main = String(data.main || data.type || 'Clear')
+            setDayWeather(prev => ({ ...prev, [day.id]: {
+              temp: data.temp as number,
+              description: String(data.description || main),
+              main,
+              emoji: weatherMainToEmoji(main),
+              wind_max: data.wind_max as number | undefined,
+              precip: data.precipitation_sum as number | undefined,
+            }}))
+          } else {
+            setDayWeather(prev => ({ ...prev, [day.id]: null }))
+          }
+        })
+        .catch(() => setDayWeather(prev => ({ ...prev, [day.id]: null })))
+    })
+  }, [days, assignments])
+
+  // All days sorted assignments (uses localOrders for DnD, falls back to prop)
   const allDayAssignments = useMemo(() => {
     return days.map(day => {
+      // If we have a local DnD-reordered version, use it
+      if (localOrders[day.id]) {
+        return { day, assignments: localOrders[day.id] }
+      }
       const sorted = [...(assignments[String(day.id)] || [])].sort((a, b) => {
         const aTime = parseTimeToMinutes(a.place?.place_time)
         const bTime = parseTimeToMinutes(b.place?.place_time)
@@ -273,7 +569,7 @@ export default function TimelineView({
       })
       return { day, assignments: sorted }
     })
-  }, [days, assignments])
+  }, [days, assignments, localOrders])
 
   // Intersection Observer: auto-update active day pill as user scrolls
   useEffect(() => {
@@ -318,6 +614,95 @@ export default function TimelineView({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  // ─── DnD handlers ───────────────────────────────────────────────────
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveAssignmentId(Number(event.active.id))
+  }, [])
+
+  const handleDragEnd = useCallback((event: DragEndEvent, dayId: number) => {
+    setActiveAssignmentId(null)
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    setLocalOrders(prev => {
+      const current = prev[dayId] || []
+      const oldIdx = current.findIndex(a => a.id === Number(active.id))
+      const newIdx = current.findIndex(a => a.id === Number(over.id))
+      if (oldIdx === -1 || newIdx === -1) return prev
+      const reordered = arrayMove(current, oldIdx, newIdx)
+      // Save to backend
+      if (tripId) {
+        assignmentsApi.reorder(tripId, dayId, reordered.map(a => a.id))
+          .then(() => onReorderDay?.(dayId, reordered.map(a => a.id)))
+          .catch(() => console.error('Failed to save order'))
+      }
+      return { ...prev, [dayId]: reordered }
+    })
+  }, [tripId, onReorderDay])
+
+  // ─── Optimize Route ────────────────────────────────────────────────────
+  const handleOptimizeRoute = useCallback(async (dayId: number, dayAssignments: Assignment[]) => {
+    const withCoords = dayAssignments.filter(a => a.place?.lat && a.place?.lng)
+    if (withCoords.length < 3) return
+    setOptimizing(prev => ({ ...prev, [dayId]: true }))
+    try {
+      // Nearest-neighbor TSP starting from first place
+      const start = withCoords[0]
+      const remaining = [...withCoords.slice(1)]
+      const optimized: Assignment[] = [start]
+
+      while (remaining.length > 0) {
+        const last = optimized[optimized.length - 1]
+        let nearestIdx = 0
+        let nearestDist = Infinity
+        remaining.forEach((a, i) => {
+          const d = haversineDistance(
+            last.place!.lat!, last.place!.lng!,
+            a.place!.lat!, a.place!.lng!
+          )
+          if (d < nearestDist) { nearestDist = d; nearestIdx = i }
+        })
+        optimized.push(remaining[nearestIdx])
+        remaining.splice(nearestIdx, 1)
+      }
+
+      // Add back any assignments without coords at the end
+      const withoutCoords = dayAssignments.filter(a => !a.place?.lat || !a.place?.lng)
+      const finalOrder = [...optimized, ...withoutCoords]
+
+      setLocalOrders(prev => ({ ...prev, [dayId]: finalOrder }))
+      setOptimizeConfirm(prev => ({ ...prev, [dayId]: true }))
+      setTimeout(() => setOptimizeConfirm(prev => ({ ...prev, [dayId]: false })), 3000)
+
+      if (tripId) {
+        await assignmentsApi.reorder(tripId, dayId, finalOrder.map(a => a.id))
+        onReorderDay?.(dayId, finalOrder.map(a => a.id))
+      }
+    } finally {
+      setOptimizing(prev => ({ ...prev, [dayId]: false }))
+    }
+  }, [tripId, onReorderDay])
+
+  // ─── Transport mode edit ──────────────────────────────────────────────────
+  const handleSetTransportMode = useCallback((fromAssId: number, dayId: number, mode: string) => {
+    const key = `${dayId}-${fromAssId}`
+    setTransportModes(prev => ({ ...prev, [key]: mode }))
+    // Also update transport_mode on the fromPlace via places API
+    if (tripId) {
+      const dayAssigns = localOrders[dayId] || []
+      const fromAssign = dayAssigns.find(a => a.id === fromAssId)
+      if (fromAssign?.place) {
+        placesApi.update(tripId, fromAssign.place.id, { transport_mode: mode })
+          .catch(() => console.warn('Could not save transport mode'))
+      }
+    }
+  }, [tripId, localOrders])
+
+  const getTransportModeForGap = useCallback((fromAssId: number, dayId: number, fromPlace: Place) => {
+    const key = `${dayId}-${fromAssId}`
+    return transportModes[key] || fromPlace.transport_mode || null
+  }, [transportModes])
 
   const handleDayClick = useCallback((dayId: number) => {
     setActiveDayId(dayId)
@@ -479,7 +864,7 @@ export default function TimelineView({
               <Search size={15} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
               <input
                 type="text"
-                placeholder="Search places…"
+                placeholder="Search places..."
                 value={searchQuery}
                 onChange={e => handleSearch(e.target.value)}
                 onFocus={() => searchQuery && setSearchOpen(searchResults.length > 0)}
@@ -616,9 +1001,14 @@ export default function TimelineView({
                 const a = dayAssignments[i].place
                 const b = dayAssignments[i + 1].place
                 if (a?.lat && a?.lng && b?.lat && b?.lng) {
-                  totalTransitMins += Math.round((haversineDistance(a.lat, a.lng, b.lat, b.lng) / 40) * 60)
+                  const mode = getTransportModeForGap(dayAssignments[i].id, day.id, a)
+                  const spd = getTransportSpeed(mode)
+                  totalTransitMins += Math.max(1, Math.round((haversineDistance(a.lat, a.lng, b.lat, b.lng) / spd) * 60))
                 }
               }
+
+              const canOptimize = dayAssignments.filter(a => a.place?.lat && a.place?.lng).length >= 3
+              const weather = dayWeather[day.id]
 
               return (
                 <div
@@ -636,14 +1026,36 @@ export default function TimelineView({
                     borderBottom: '2px solid var(--border-faint)',
                     marginBottom: 12,
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', flex: 1, minWidth: 0 }}>
                         Day {dayNumber}{day.title ? ` · ${day.title}` : ''}
+                        {day.date && (
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8 }}>
+                            {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
                       </h2>
-                      {day.date && (
-                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                          {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        </span>
+                      {/* Weather badge */}
+                      <WeatherBadge weather={weather} />
+                      {/* Optimize Route button */}
+                      {canOptimize && (
+                        <button
+                          onClick={() => handleOptimizeRoute(day.id, dayAssignments)}
+                          disabled={!!optimizing[day.id]}
+                          title="Optimize visiting order by distance"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            padding: '4px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, fontFamily: 'inherit',
+                            cursor: optimizing[day.id] ? 'wait' : 'pointer',
+                            border: 'none',
+                            background: optimizeConfirm[day.id] ? 'rgba(16,185,129,0.12)' : 'rgba(99,102,241,0.1)',
+                            color: optimizeConfirm[day.id] ? '#10b981' : '#6366f1',
+                            transition: 'all 0.2s',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {optimizeConfirm[day.id] ? <><Check size={11} /> Optimized!</> : optimizing[day.id] ? '⏳…' : <><Zap size={11} /> Optimize</>}
+                        </button>
                       )}
                     </div>
                     {dayAssignments.length > 0 && (
@@ -674,15 +1086,25 @@ export default function TimelineView({
                         <div style={{ fontSize: 12 }}>Add places to this day from the Places panel</div>
                       </div>
                     ) : (
-                      <div style={{ position: 'relative' }}>
-                        {/* Vertical timeline line */}
-                        <div style={{
-                          position: 'absolute', left: 32, top: 8, bottom: 8, width: 2,
-                          background: 'linear-gradient(to bottom, var(--accent), var(--border-faint))',
-                          borderRadius: 1, opacity: 0.4, pointerEvents: 'none',
-                        }} />
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragStart={handleDragStart}
+                        onDragEnd={e => handleDragEnd(e, day.id)}
+                      >
+                        <SortableContext
+                          items={dayAssignments.map(a => a.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div style={{ position: 'relative' }}>
+                            {/* Vertical timeline line */}
+                            <div style={{
+                              position: 'absolute', left: 32, top: 8, bottom: 8, width: 2,
+                              background: 'linear-gradient(to bottom, var(--accent), var(--border-faint))',
+                              borderRadius: 1, opacity: 0.4, pointerEvents: 'none',
+                            }} />
 
-                        {dayAssignments.map((assignment, idx) => {
+                            {dayAssignments.map((assignment, idx) => {
                           const place = assignment.place
                           if (!place) return null
                           const startTime = place.place_time ? formatTime(place.place_time, locale, timeFormat) : null
@@ -716,7 +1138,7 @@ export default function TimelineView({
                                   )}
                                 </div>
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                  <ActivityCard
+                                  <SortableActivityItem
                                     assignment={assignment}
                                     startTime={startTime}
                                     endTime={endTime}
@@ -727,18 +1149,48 @@ export default function TimelineView({
                                     }}
                                     isSelected={isSelected}
                                     highlight={isHighlighted}
+                                    activeId={activeAssignmentId}
                                   />
                                 </div>
                               </div>
                               {idx < dayAssignments.length - 1 && dayAssignments[idx + 1].place && (
                                 <div style={{ paddingLeft: 78 }}>
-                                  <TransitGap fromPlace={place} toPlace={dayAssignments[idx + 1].place} />
+                                  <TransitGap
+                                    fromPlace={place}
+                                    toPlace={dayAssignments[idx + 1].place}
+                                    transportMode={getTransportModeForGap(assignment.id, day.id, place)}
+                                    onEditTransport={mode => handleSetTransportMode(assignment.id, day.id, mode)}
+                                  />
                                 </div>
                               )}
                             </div>
                           )
-                        })}
-                      </div>
+                            })}
+                          </div>
+                        </SortableContext>
+                        <DragOverlay>
+                          {activeAssignmentId ? (() => {
+                            const a = dayAssignments.find(x => x.id === activeAssignmentId)
+                            if (!a) return null
+                            const st = a.place?.place_time ? formatTime(a.place.place_time, locale, timeFormat) : null
+                            const et = a.place?.end_time ? formatTime(a.place.end_time, locale, timeFormat) : null
+                            return (
+                              <div style={{ transform: 'rotate(1.5deg)', paddingLeft: 78, paddingRight: 16 }}>
+                                <ActivityCard
+                                  assignment={a}
+                                  startTime={st}
+                                  endTime={et}
+                                  categories={categories}
+                                  onClick={() => {}}
+                                  isSelected={false}
+                                  highlight={false}
+                                  isDragging={true}
+                                />
+                              </div>
+                            )
+                          })() : null}
+                        </DragOverlay>
+                      </DndContext>
                     )}
                   </div>
 
