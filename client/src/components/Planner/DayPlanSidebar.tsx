@@ -4,7 +4,7 @@ declare global { interface Window { __dragData: DragDataPayload | null } }
 
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import ReactDOM from 'react-dom'
-import { ChevronDown, ChevronRight, ChevronUp, ChevronsDownUp, ChevronsUpDown, Navigation, RotateCcw, ExternalLink, Clock, Pencil, GripVertical, Ticket, Plus, FileText, Check, Trash2, Info, MapPin, Star, Heart, Camera, Lightbulb, Flag, Bookmark, Train, Bus, Plane, Car, Ship, Coffee, ShoppingBag, AlertTriangle, FileDown, Lock, Hotel, Utensils, Users, Undo2, X, Route as RouteIcon } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp, ChevronsDownUp, ChevronsUpDown, Navigation, RotateCcw, ExternalLink, Clock, Pencil, GripVertical, Ticket, Plus, FileText, Check, Trash2, Info, MapPin, Star, Heart, Camera, Lightbulb, Flag, Bookmark, Train, Bus, Plane, Car, Ship, Coffee, ShoppingBag, AlertTriangle, FileDown, Lock, Hotel, Utensils, Users, Undo2, X, Route as RouteIcon, MoreVertical, ArrowRight } from 'lucide-react'
 
 const RES_ICONS = { flight: Plane, hotel: Hotel, restaurant: Utensils, train: Train, car: Car, cruise: Ship, event: Ticket, tour: Users, other: FileText }
 import { assignmentsApi, reservationsApi } from '../../api/client'
@@ -1332,19 +1332,32 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
                             }}
                             onDragEnd={() => { setDraggingId(null); setDragOverDayId(null); setDropTargetKey(null); dragDataRef.current = null }}
                             onClick={() => { onPlaceClick(isPlaceSelected ? null : place.id, isPlaceSelected ? null : assignment.id); if (!isPlaceSelected) onSelectDay(day.id, true) }}
-                            onContextMenu={e => ctxMenu.open(e, [
-                              canEditDays && onEditPlace && { label: t('common.edit'), icon: Pencil, onClick: () => onEditPlace(place, assignment.id) },
-                              canEditDays && onRemoveAssignment && { label: t('planner.removeFromDay'), icon: Trash2, onClick: () => onRemoveAssignment(day.id, assignment.id) },
-                              place.website && { label: t('inspector.website'), icon: ExternalLink, onClick: () => window.open(place.website, '_blank') },
-                              (place.lat && place.lng) && { label: 'Google Maps', icon: Navigation, onClick: () => window.open(`https://www.google.com/maps/search/?api=1&query=${place.google_place_id ? encodeURIComponent(place.name) + '&query_place_id=' + place.google_place_id : place.lat + ',' + place.lng}`, '_blank') },
-                              { divider: true },
-                              canEditDays && onDeletePlace && { label: t('common.delete'), icon: Trash2, danger: true, onClick: () => onDeletePlace(place.id) },
-                            ])}
+                            onContextMenu={e => {
+                              const otherDays = days.filter(d => d.id !== day.id)
+                              ctxMenu.open(e, [
+                                canEditDays && onEditPlace && { label: t('common.edit'), icon: Pencil, onClick: () => onEditPlace(place, assignment.id) },
+                                canEditDays && onRemoveAssignment && { label: t('planner.removeFromDay'), icon: Trash2, onClick: () => onRemoveAssignment(day.id, assignment.id) },
+                                canEditDays && otherDays.length > 0 && {
+                                  label: 'Move to day',
+                                  icon: ArrowRight,
+                                  submenu: otherDays.map(d => ({
+                                    label: d.title || `Day ${d.day_number}`,
+                                    onClick: () => tripActions.moveAssignment(tripId, assignment.id, day.id, d.id).catch((err: unknown) => toast.error(err instanceof Error ? err.message : t('common.unknownError'))),
+                                  })),
+                                },
+                                place.website && { label: t('inspector.website'), icon: ExternalLink, onClick: () => window.open(place.website, '_blank') },
+                                (place.lat && place.lng) && { label: 'Google Maps', icon: Navigation, onClick: () => window.open(`https://www.google.com/maps/search/?api=1&query=${place.google_place_id ? encodeURIComponent(place.name) + '&query_place_id=' + place.google_place_id : place.lat + ',' + place.lng}`, '_blank') },
+                                { divider: true },
+                                canEditDays && onDeletePlace && { label: t('common.delete'), icon: Trash2, danger: true, onClick: () => onDeletePlace(place.id) },
+                              ])
+                            }}
                             onMouseEnter={e => {
                               if (!isPlaceSelected && !lockedIds.has(assignment.id))
                                 e.currentTarget.style.background = 'var(--bg-hover)'
                               const grip = e.currentTarget.querySelector('.dp-grip') as HTMLElement | null
                               if (grip) grip.style.opacity = '1'
+                              const dots = e.currentTarget.querySelector('.dp-dots') as HTMLElement | null
+                              if (dots) dots.style.opacity = '1'
                               setHoveredAssignmentId(assignment.id)
                             }}
                             onMouseLeave={e => {
@@ -1352,6 +1365,8 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
                                 e.currentTarget.style.background = 'transparent'
                               const grip = e.currentTarget.querySelector('.dp-grip') as HTMLElement | null
                               if (grip) grip.style.opacity = '0.3'
+                              const dots = e.currentTarget.querySelector('.dp-dots') as HTMLElement | null
+                              if (dots) dots.style.opacity = '0'
                               setHoveredAssignmentId(null)
                             }}
                             style={{
@@ -1533,6 +1548,49 @@ const DayPlanSidebar = React.memo(function DayPlanSidebar({
                                 <ChevronDown size={12} strokeWidth={2} />
                               </button>
                             </div>}
+                            {canEditDays && (
+                              <button
+                                className="dp-dots"
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  const otherDays = days.filter(d => d.id !== day.id)
+                                  ctxMenu.open(e, [
+                                    onEditPlace && { label: t('common.edit'), icon: Pencil, onClick: () => onEditPlace(place, assignment.id) },
+                                    onRemoveAssignment && { label: t('planner.removeFromDay'), icon: Trash2, onClick: () => onRemoveAssignment(day.id, assignment.id) },
+                                    otherDays.length > 0 && {
+                                      label: 'Move to day',
+                                      icon: ArrowRight,
+                                      submenu: otherDays.map(d => ({
+                                        label: d.title || `Day ${d.day_number}`,
+                                        onClick: () => tripActions.moveAssignment(tripId, assignment.id, day.id, d.id).catch((err: unknown) => toast.error(err instanceof Error ? err.message : t('common.unknownError'))),
+                                      })),
+                                    },
+                                    place.website && { label: t('inspector.website'), icon: ExternalLink, onClick: () => window.open(place.website, '_blank') },
+                                    (place.lat && place.lng) && { label: 'Google Maps', icon: Navigation, onClick: () => window.open(`https://www.google.com/maps/search/?api=1&query=${place.google_place_id ? encodeURIComponent(place.name) + '&query_place_id=' + place.google_place_id : place.lat + ',' + place.lng}`, '_blank') },
+                                    { divider: true },
+                                    onDeletePlace && { label: t('common.delete'), icon: Trash2, danger: true, onClick: () => onDeletePlace(place.id) },
+                                  ])
+                                }}
+                                title="More actions"
+                                style={{
+                                  flexShrink: 0,
+                                  background: 'none',
+                                  border: 'none',
+                                  borderRadius: 4,
+                                  padding: '2px 3px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  color: 'var(--text-faint)',
+                                  opacity: 0,
+                                  transition: 'opacity 0.15s, background 0.1s',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text-primary)' }}
+                                onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-faint)' }}
+                              >
+                                <MoreVertical size={13} strokeWidth={2} />
+                              </button>
+                            )}
                             {canEditDays && onAddBookingToAssignment && hoveredAssignmentId === assignment.id && (
                               <button
                                 onClick={e => {
