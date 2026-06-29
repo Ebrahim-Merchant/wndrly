@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import Modal from '../shared/Modal'
-import { Calendar, Camera, X, Clipboard, UserPlus, Bell } from 'lucide-react'
+import { Calendar, Camera, X, Clipboard, UserPlus, Bell, Bus } from 'lucide-react'
 import { tripsApi, authApi } from '../../api/client'
 import CustomSelect from '../shared/CustomSelect'
 import { useAuthStore } from '../../store/authStore'
@@ -8,17 +8,19 @@ import { useCanDo } from '../../store/permissionsStore'
 import { useToast } from '../shared/Toast'
 import { useTranslation } from '../../i18n'
 import { CustomDatePicker } from '../shared/CustomDateTimePicker'
-import type { Trip } from '../../types'
+import type { Trip, Day } from '../../types'
+import TransportDefaultsPanel from '../Transport/TransportDefaultsPanel'
 
 interface TripFormModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: (data: Record<string, string | number | null>) => Promise<void> | void
   trip: Trip | null
-  onCoverUpdate: (tripId: number, coverUrl: string) => void
+  onCoverUpdate?: (tripId: number, coverUrl: string) => void
+  days?: Day[]
 }
 
-export default function TripFormModal({ isOpen, onClose, onSave, trip, onCoverUpdate }: TripFormModalProps) {
+export default function TripFormModal({ isOpen, onClose, onSave, trip, onCoverUpdate, days = [] }: TripFormModalProps) {
   const isEditing = !!trip
   const fileRef = useRef(null)
   const toast = useToast()
@@ -399,6 +401,16 @@ export default function TripFormModal({ isOpen, onClose, onSave, trip, onCoverUp
             </>
           )}
         </div>
+        )}
+
+        {/* Transport defaults — only shown when editing an existing trip */}
+        {isEditing && trip?.id && (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              <Bus className="inline w-4 h-4 mr-1" />Transport Defaults
+            </label>
+            <TransportDefaultsPanel tripId={trip.id} days={days} />
+          </div>
         )}
 
         {/* Members */}

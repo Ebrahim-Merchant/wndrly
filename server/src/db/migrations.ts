@@ -2265,6 +2265,42 @@ function runMigrations(db: Database.Database): void {
         if (!err.message?.includes('no such table')) throw err;
       }
     },
+    // Transit-first transport defaults (Phase 1)
+    // - Add default_transport_mode to trips (trip-level default)
+    // - Add default_transport_mode to days (day-level override)
+    // - Add trip_city_transport table (city-level overrides for multi-city trips)
+    // - Add transit_cache table (Google Routes API response cache)
+    () => {
+      try { db.exec('ALTER TABLE trips ADD COLUMN default_transport_mode TEXT NOT NULL DEFAULT \'walking+transit\''); }
+      catch (err: any) { if (!err.message?.includes('duplicate column name')) throw err; }
+      try { db.exec('ALTER TABLE days ADD COLUMN default_transport_mode TEXT'); }
+      catch (err: any) { if (!err.message?.includes('duplicate column name')) throw err; }
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS trip_city_transport (
+          id            INTEGER PRIMARY KEY AUTOINCREMENT,
+          trip_id       INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+          city_label    TEXT NOT NULL,
+          transport_mode TEXT NOT NULL DEFAULT 'walking+transit',
+          created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(trip_id, city_label)
+        );
+        CREATE INDEX IF NOT EXISTS idx_city_transport_trip ON trip_city_transport(trip_id);
+        CREATE TABLE IF NOT EXISTS transit_cache (
+          id           TEXT PRIMARY KEY,
+          origin_lat   REAL NOT NULL,
+          origin_lng   REAL NOT NULL,
+          dest_lat     REAL NOT NULL,
+          dest_lng     REAL NOT NULL,
+          date_bucket  TEXT NOT NULL,
+          hour_bucket  INTEGER NOT NULL,
+          response     TEXT NOT NULL,
+          fetched_at   INTEGER NOT NULL,
+          expires_at   INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_transit_cache_expires ON transit_cache(expires_at);
+      `);
+    },
   ];
 
   if (currentVersion < migrations.length) {

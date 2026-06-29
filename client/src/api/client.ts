@@ -611,4 +611,30 @@ export const inAppNotificationsApi = {
       apiClient.post(`/notifications/in-app/${id}/respond`, { response }).then(r => r.data),
 }
 
+export const transitApi = {
+  getRoute: (params: {
+    tripId?: number | string
+    originLat: number; originLng: number
+    destLat: number; destLng: number
+    date?: string | null; time?: string | null
+  }) => apiClient.get('/transit/route', { params }).then(r => r.data),
+
+  getTripDefaults: (tripId: number | string) =>
+    apiClient.get(`/transit/trips/${tripId}/defaults`).then(r => r.data),
+  patchTripDefaults: (tripId: number | string, mode: string) =>
+    apiClient.patch(`/transit/trips/${tripId}/defaults`, { default_transport_mode: mode }).then(r => r.data),
+
+  getDayTransport: (tripId: number | string, dayId: number) =>
+    apiClient.get(`/transit/trips/${tripId}/days/${dayId}/transport`).then(r => r.data),
+  patchDayTransport: (tripId: number | string, dayId: number, mode: string | null) =>
+    apiClient.patch(`/transit/trips/${tripId}/days/${dayId}/transport`, { default_transport_mode: mode }).then(r => r.data),
+
+  getCityTransport: (tripId: number | string) =>
+    apiClient.get(`/transit/trips/${tripId}/city-transport`).then(r => r.data),
+  putCityTransport: (tripId: number | string, label: string, mode: string) =>
+    apiClient.put(`/transit/trips/${tripId}/city-transport/${encodeURIComponent(label)}`, { transport_mode: mode }).then(r => r.data),
+  deleteCityTransport: (tripId: number | string, label: string) =>
+    apiClient.delete(`/transit/trips/${tripId}/city-transport/${encodeURIComponent(label)}`).then(r => r.data),
+}
+
 export default apiClient

@@ -43,6 +43,7 @@ import journeyRoutes from './routes/journey';
 import journeyPublicRoutes from './routes/journeyPublic';
 import publicConfigRoutes from './routes/publicConfig';
 import systemNoticesRoutes from './routes/systemNotices';
+import transitRoutes from './routes/transit';
 import { mcpHandler } from './mcp';
 import { trekOAuthProvider, trekClientsStore } from './mcp/oauthProvider';
 import { Addon } from './types';
@@ -360,6 +361,7 @@ export function createApp(): express.Application {
   app.use('/api/integrations/memories', memoriesRoutes);
   app.use('/api/photos', photoRoutes);
   app.use('/api/maps', mapsRoutes);
+  app.use('/api/transit', transitRoutes);
   app.use('/api/airports', airportsRoutes);
   app.use('/api/weather', weatherRoutes);
   app.use('/api/settings', settingsRoutes);

@@ -308,8 +308,18 @@ export default function Sidebar() {
       {/* User profile card at bottom */}
       <div className="flex-shrink-0 px-2 pb-4 pt-2">
         {isCollapsed ? (
-          /* Collapsed: just avatar + logout stacked */
+          /* Collapsed: dark mode + avatar + logout stacked */
           <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={toggleDarkMode}
+              title={dark ? t('nav.lightMode') : t('nav.darkMode')}
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+              style={{ color: 'var(--text-faint)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              {dark ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
             {user?.avatar_url ? (
               <img
                 src={user.avatar_url}
@@ -330,16 +340,6 @@ export default function Sidebar() {
                 {user?.username?.charAt(0).toUpperCase() || '?'}
               </div>
             )}
-            <button
-              onClick={toggleDarkMode}
-              title={dark ? t('nav.lightMode') : t('nav.darkMode')}
-              className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-              style={{ color: 'var(--text-faint)' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              {dark ? <Sun size={14} /> : <Moon size={14} />}
-            </button>
             <button
               onClick={handleLogout}
               title={t('nav.logout')}

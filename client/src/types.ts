@@ -24,6 +24,7 @@ export interface Trip {
   is_archived: boolean
   reminder_days: number
   owner_id: number
+  default_transport_mode: string | null
   created_at: string
   updated_at: string
 }
@@ -35,6 +36,7 @@ export interface Day {
   date: string
   title: string | null
   notes: string | null
+  default_transport_mode: string | null
   assignments: Assignment[]
   notes_items: DayNote[]
 }
@@ -436,4 +438,95 @@ export interface MergedItem {
   type: 'assignment' | 'note' | 'place' | 'transport'
   sortKey: number
   data: Assignment | DayNote | Reservation
+}
+
+// ─── Transit-first transport types ──────────────────────────────────────────
+
+/**
+ * Transport mode options for the trip/day/city/segment hierarchy.
+ * - walking+transit: Default city mode — walk + public transit
+ * - walking: Pedestrian only
+ * - car: Rental car or owned vehicle
+ * - taxi: Taxi / rideshare (Uber, Lyft, etc.)
+ * - bike: Cycling / bike-share
+ * - mixed: No default; choose per segment
+ * - boat: Ferry / boat (manual, segment-level only)
+ * - plane: Plane / air (used for long inter-city hops)
+ * - train: Long-distance train / rail
+ * - bus: Long-distance bus
+ */
+export type TransportMode =
+  | 'walking+transit'
+  | 'walking'
+  | 'car'
+  | 'taxi'
+  | 'bike'
+  | 'mixed'
+  | 'boat'
+  | 'plane'
+  | 'train'
+  | 'bus'
+
+export const TRANSPORT_MODE_OPTIONS: { value: TransportMode; label: string; icon: string; speed: number }[] = [
+  { value: 'walking+transit', label: 'Walking + Transit', icon: '🚶‍♂️🚌', speed: 18 },
+  { value: 'walking',         label: 'Walking only',      icon: '🚶',    speed: 5  },
+  { value: 'car',             label: 'Car / Rental',      icon: '🚗',    speed: 40 },
+  { value: 'taxi',            label: 'Taxi / Rideshare',  icon: '🚕',    speed: 35 },
+  { value: 'bike',            label: 'Bike / Cycle',      icon: '🚲',    speed: 15 },
+  { value: 'mixed',           label: 'Mixed (manual)',    icon: '🗺️',   speed: 20 },
+  { value: 'boat',            label: 'Boat / Ferry',      icon: '⛴️',   speed: 25 },
+  { value: 'train',           label: 'Train / Rail',      icon: '🚆',    speed: 80 },
+  { value: 'bus',             label: 'Bus',               icon: '🚌',    speed: 25 },
+  { value: 'plane',           label: 'Plane',             icon: '✈️',   speed: 600 },
+]
+
+/** Transit leg (one step of a walking+transit route from Google Routes API) */
+export interface TransitLeg {
+  type: 'WALK' | 'TRANSIT'
+  distanceMeters?: number
+  durationSeconds?: number
+  lineName?: string
+  lineShortName?: string
+  agencyName?: string
+  vehicleType?: string
+  numStops?: number
+  departureStop?: string
+  arrivalStop?: string
+  departureTime?: string
+  arrivalTime?: string
+  headsign?: string
+  polyline?: string
+}
+
+/** Full transit route result from the API or cache */
+export interface TransitResult {
+  totalDurationSeconds: number
+  totalDistanceMeters: number
+  legs: TransitLeg[]
+  departureTime: string
+  arrivalTime: string
+  polyline?: string
+  source: 'cache' | 'api'
+}
+
+/** Transit error (fallback when no transit available) */
+export interface TransitError {
+  code: 'NO_TRANSIT' | 'API_ERROR' | 'TOO_LONG' | 'NO_KEY'
+  message: string
+}
+
+/** City-level transport override entry */
+export interface CityTransport {
+  id: number
+  city_label: string
+  transport_mode: TransportMode
+}
+
+/** Boat/Ferry manual segment details */
+export interface BoatSegment {
+  service_name: string    // e.g. "Uber Boat by Thames Clippers"
+  boarding_stop: string   // e.g. "Waterloo Pier"
+  alighting_stop: string  // e.g. "London Bridge City Pier"
+  duration_minutes?: number
+  notes?: string
 }
