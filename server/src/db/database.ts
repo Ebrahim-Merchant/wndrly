@@ -11,6 +11,16 @@ import { Place, Tag } from '../types';
 // ============================================================
 const USE_POSTGRES = !!process.env.DATABASE_URL;
 
+// Production safety guard: refuse to start on SQLite in production.
+// This prevents silent data loss if DATABASE_URL is accidentally unset.
+if (process.env.NODE_ENV === 'production' && !USE_POSTGRES) {
+  console.error(
+    '[DB] FATAL: NODE_ENV=production but DATABASE_URL is not set.\n' +
+    '     Refusing to start on SQLite in production. Set DATABASE_URL to continue.'
+  );
+  process.exit(1);
+}
+
 let db: Database.Database | ReturnType<typeof createPgDb>;
 
 function createPgDb() {

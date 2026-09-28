@@ -66,8 +66,10 @@ async function runBackup(): Promise<void> {
   const outputPath = path.join(backupsDir, filename);
 
   try {
-    // Flush WAL to main DB file before archiving
-    try { const { db } = require('./db/database'); db.exec('PRAGMA wal_checkpoint(TRUNCATE)'); } catch (e) {}
+    // Flush WAL to main DB file before archiving (SQLite-only; no-op in Postgres mode)
+    if (!process.env.DATABASE_URL) {
+      try { const { db } = require('./db/database'); db.exec('PRAGMA wal_checkpoint(TRUNCATE)'); } catch (e) {}
+    }
 
     await new Promise<void>((resolve, reject) => {
       const output = fs.createWriteStream(outputPath);

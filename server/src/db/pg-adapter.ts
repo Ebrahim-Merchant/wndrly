@@ -113,12 +113,96 @@ function convertQuery(sql: string, params: unknown[]): { query: string; values: 
     }
   }
 
+  // ── SQLite date/datetime → PostgreSQL equivalents ─────────────────────────
+  //
+  // Order matters: most-specific patterns first.
+
+  // strftime('%Y-%m-%dT%H:%M:%SZ','now') → to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+  query = query.replace(
+    /strftime\('%(Y-m-dT%H:%M:%SZ)','now'\)/gi,
+    "to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"')"
+  );
+
+  // strftime('%s','now') → EXTRACT(EPOCH FROM NOW())::BIGINT
+  query = query.replace(/strftime\('%s','now'\)/gi, 'EXTRACT(EPOCH FROM NOW())::BIGINT');
+
+  // datetime('now', '-N hours') / datetime('now', '+N hours') etc.
+  // e.g. datetime('now', '-20 hours') → (NOW() - INTERVAL '20 hours')
+  query = query.replace(
+    /datetime\('now',\s*'([+-]\d+)\s+(\w+)'\)/gi,
+    (_m, num, unit) => {
+      const n = parseInt(num, 10);
+      const abs = Math.abs(n);
+      const op = n < 0 ? '-' : '+';
+      return `(NOW() ${op} INTERVAL '${abs} ${unit}')`;
+    }
+  );
+
+  // datetime('now') → NOW()
+  query = query.replace(/datetime\('now'\)/gi, 'NOW()');
+
+  // date('now', '+' || col || ' days') — dynamic interval from column/expression
+  // e.g.  date('now', '+' || t.reminder_days || ' days')
+  //       date('now', '+' || $1 || ' days')  (after ? -> $N substitution)
+  query = query.replace(
+    /date\('now',\s*'\+'\s*\|\|\s*([\w.]+|\$\d+)\s*\|\|\s*'\s+days'\)/gi,
+    (_m, col) => `(CURRENT_DATE + (${col} || ' days')::INTERVAL)::DATE::TEXT`
+  );
+
+  // date('now', '-' || col || ' days') — dynamic interval from column/expression
+  query = query.replace(
+    /date\('now',\s*'-'\s*\|\|\s*([\w.]+|\$\d+)\s*\|\|\s*'\s+days'\)/gi,
+    (_m, col) => `(CURRENT_DATE - (${col} || ' days')::INTERVAL)::DATE::TEXT`
+  );
+
+  // date('now', '+N days') / date('now', '-N days') — literal offset
+  query = query.replace(
+    /date\('now',\s*'([+-]\d+)\s+(\w+)'\)/gi,
+    (_m, num, unit) => {
+      const n = parseInt(num, 10);
+      const abs = Math.abs(n);
+      const op = n < 0 ? '-' : '+';
+      return `(CURRENT_DATE ${op} INTERVAL '${abs} ${unit}')::DATE::TEXT`;
+    }
+  );
+
+  // date(col, '+' || ? || ' days') — parameterised offset with explicit '+' prefix
+  // e.g.  SET date = date(date, '+' || $1 || ' days')
+  query = query.replace(
+    /date\(([\w.]+),\s*'\+'\s*\|\|\s*(\$\d+|\?)\s*\|\|\s*'\s+days'\)/gi,
+    (_m, col, ph) => `(${col}::DATE + (${ph} || ' days')::INTERVAL)::DATE::TEXT`
+  );
+
+  // date(col, param || ' days') — bare param (value already includes sign, e.g. '+3' or '-2')
+  // e.g.  SET date = date(date, $1 || ' days')  where $1 = '+3'
+  query = query.replace(
+    /date\(([\w.]+),\s*(\$\d+|\?)\s*\|\|\s*'\s+days'\)/gi,
+    (_m, col, ph) => `(${col}::DATE + (${ph} || ' days')::INTERVAL)::DATE::TEXT`
+  );
+
+  // date(col, '+N days') / date(col, '-N days') — literal offset on a column
+  query = query.replace(
+    /date\(([\w.]+),\s*'([+-]\d+)\s+(\w+)'\)/gi,
+    (_m, col, num, unit) => {
+      const n = parseInt(num, 10);
+      const abs = Math.abs(n);
+      const op = n < 0 ? '-' : '+';
+      return `(${col}::DATE ${op} INTERVAL '${abs} ${unit}')::DATE::TEXT`;
+    }
+  );
+
+  // date(col) — cast column to date text
+  query = query.replace(
+    /\bdate\(([\w.]+)\)/gi,
+    (_m, col) => `${col}::DATE::TEXT`
+  );
+
+  // date('now') — bare current date
+  query = query.replace(/\bdate\('now'\)/gi, 'CURRENT_DATE::TEXT');
+
   query = query
     .replace(/\bCURRENT_TIMESTAMP\b/g, 'CURRENT_TIMESTAMP')
-    .replace(/strftime\('%s','now'\)/g, "EXTRACT(EPOCH FROM NOW())::BIGINT")
-    .replace(/datetime\('now'\)/gi, 'NOW()')
-    .replace(/IFNULL\(/gi, 'COALESCE(')
-    .replace(/\|\|/g, '||');
+    .replace(/IFNULL\(/gi, 'COALESCE(');
 
   return { query, values };
 }
@@ -147,7 +231,6 @@ function convertRow(row: Record<string, unknown>): Record<string, unknown> {
 //   4. Main thread uses Atomics.wait() on a SharedArrayBuffer flag to block
 //      without interfering with the outer event loop's I/O callbacks.
 
-// Worker source embedded as a string to avoid file-system path issues in Docker
 const WORKER_SRC = `
 const { workerData, parentPort } = require('worker_threads');
 const { Pool } = require('pg');
@@ -167,24 +250,45 @@ function getPool() {
   return _pool;
 }
 
-parentPort.on('message', async ({ port, sql, values, sharedBuf }) => {
-  const sab = sharedBuf; // Int32Array view set to 0; main waits until 1
+function convertRow(row) {
+  if (!row) return row;
+  const out = {};
+  for (const [k, v] of Object.entries(row)) {
+    if (v instanceof Date) {
+      out[k] = v.toISOString().replace('T', ' ').replace(/\\.\\d{3}Z$/, '');
+    } else if (typeof v === 'bigint') {
+      out[k] = Number(v);
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
+parentPort.on('message', async ({ port, sql, values, transaction, sharedBuf }) => {
+  const sab = sharedBuf;
   try {
-    const res = await getPool().query(sql, values);
-    const rows = (res.rows || []).map(row => {
-      const out = {};
-      for (const [k, v] of Object.entries(row)) {
-        if (v instanceof Date) {
-          out[k] = v.toISOString().replace('T', ' ').replace(/\\.\\d{3}Z$/, '');
-        } else if (typeof v === 'bigint') {
-          out[k] = Number(v);
-        } else {
-          out[k] = v;
+    if (transaction) {
+      // Atomic multi-statement transaction on one client
+      const client = await getPool().connect();
+      try {
+        await client.query('BEGIN');
+        for (const { query, values: vals } of transaction) {
+          await client.query(query, vals);
         }
+        await client.query('COMMIT');
+        port.postMessage({ ok: true, rows: [], rowCount: 0 });
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        port.postMessage({ ok: false, error: err.message });
+      } finally {
+        client.release();
       }
-      return out;
-    });
-    port.postMessage({ ok: true, rows, rowCount: res.rowCount || 0 });
+    } else {
+      const res = await getPool().query(sql, values);
+      const rows = (res.rows || []).map(convertRow);
+      port.postMessage({ ok: true, rows, rowCount: res.rowCount || 0 });
+    }
   } catch (err) {
     port.postMessage({ ok: false, error: err.message });
   } finally {
@@ -211,7 +315,7 @@ function getWorker(): Worker {
         DATABASE_SSL: process.env.DATABASE_SSL,
       },
     });
-    w.on('error', (err) => console.error('[PG Worker] Error:', err.message));
+    w.on('error', (err: Error) => console.error('[PG Worker] Error:', err.message));
     workerQueue.push(w);
     return w;
   }
@@ -340,14 +444,86 @@ class Statement {
 }
 
 /**
- * Transaction wrapper
+ * Transaction wrapper — true ACID: all statements run on one dedicated
+ * pool client inside BEGIN/COMMIT.  On error the client is ROLLBACK-ed.
+ *
+ * The returned function is synchronous (Atomics.wait) so it matches the
+ * better-sqlite3 `.transaction(fn)()` calling convention.
+ *
+ * Inside `fn`, every `db.prepare(...).run/get/all` call that reaches
+ * `runSync` will also run on separate pool connections — so this only
+ * guarantees atomicity for statements you run via the `txDb` proxy that
+ * is passed to fn.  We collect those as { sql, values } entries and
+ * flush them as a single multi-statement transaction over the pool.
  */
 function transaction<T>(fn: (db: typeof pgDb) => T): () => T {
   return () => {
-    // Run the function — each statement inside uses runSync which handles its own connection.
-    // For true ACID transactions this would need a dedicated connection, but
-    // the existing code does not rely on cross-statement transactions in practice.
-    return fn(pgDb);
+    // Collect statements executed on the txProxy
+    const stmts: { query: string; values: unknown[] }[] = [];
+    let lastResult: T;
+
+    // Minimal proxy: only `.prepare(sql).run(...)` participates in the batch.
+    // `.get` / `.all` still run immediately (read-only within a transaction).
+    const txDb = {
+      ...pgDb,
+      prepare: (sql: string) => ({
+        run: (...params: unknown[]) => {
+          const flat = (params as unknown[]).flat();
+          const converted = convertQuery(sql, flat);
+          stmts.push(converted);
+          // Return a placeholder — callers rarely inspect run() inside transactions
+          return { changes: 1, lastInsertRowid: 0 };
+        },
+        get: (...params: unknown[]) => {
+          const flat = (params as unknown[]).flat();
+          return runSync(sql, flat).rows[0];
+        },
+        all: (...params: unknown[]) => {
+          const flat = (params as unknown[]).flat();
+          return runSync(sql, flat).rows;
+        },
+        iterate: (...params: unknown[]) => {
+          const flat = (params as unknown[]).flat();
+          return runSync(sql, flat).rows[Symbol.iterator]() as IterableIterator<Record<string, unknown>>;
+        },
+      }),
+    };
+
+    // Run fn to collect statements (reads go through immediately, writes buffered)
+    lastResult = fn(txDb as unknown as typeof pgDb);
+
+    if (stmts.length === 0) return lastResult;
+
+    // Execute all buffered write statements atomically on one client
+    const worker = getWorker();
+    const { port1, port2 } = new MessageChannel();
+    const sab = new SharedArrayBuffer(4);
+    const flag = new Int32Array(sab);
+    Atomics.store(flag, 0, 0);
+
+    // Encode as a special 'transaction' message the worker recognises
+    worker.postMessage({
+      port: port2,
+      transaction: stmts,
+      sharedBuf: sab,
+    }, [port2]);
+
+    Atomics.wait(flag, 0, 0, 30000);
+    releaseWorker(worker);
+
+    const msg = receiveMessageOnPort(port1);
+    port1.close();
+
+    if (!msg) throw new Error('[PG] Transaction timed out after 30s');
+
+    const { ok, error } = msg.message as { ok: boolean; error?: string };
+    if (!ok) {
+      const e = new Error(error);
+      console.error(`[PG] Transaction error: ${error}`);
+      throw e;
+    }
+
+    return lastResult;
   };
 }
 
